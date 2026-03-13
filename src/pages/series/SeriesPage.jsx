@@ -19,48 +19,47 @@ export default function SeriesPage() {
 
   return (
     <div className="min-h-screen bg-black">
-      <div className="max-w-7xl mx-auto px-4 pt-4 md:py-12">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6 md:mb-8">
-          <h1 className="text-2xl md:text-4xl font-heading font-bold">Series</h1>
-          <div className="flex gap-2 md:gap-3">
-            <input
-              value={genre}
-              onChange={(e) => setGenre(e.target.value)}
-              placeholder="Genre"
-              className="rounded-full bg-[#111111] border border-[#222222] px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm flex-1 md:flex-none text-white placeholder-neutral-500"
-            />
-            <input
-              value={year}
-              onChange={(e) => setYear(e.target.value)}
-              placeholder="Year"
-              className="rounded-full bg-[#111111] border border-[#222222] px-3 md:px-4 py-1.5 md:py-2 text-xs md:text-sm flex-1 md:flex-none text-white placeholder-neutral-500"
-            />
-          </div>
+      <div className="max-w-6xl mx-auto px-4 pt-4 md:py-12">
+        <div className="flex items-center justify-between gap-4 mb-4">
+          <h1 className="text-xl sm:text-2xl md:text-4xl font-heading font-bold">Series</h1>
+        </div>
+        
+        <div className="flex gap-3 mb-6">
+          <input
+            value={genre}
+            onChange={(e) => setGenre(e.target.value)}
+            placeholder="Genre"
+            className="flex-1 px-3 py-2 text-sm rounded-full bg-[#111111] border border-[#222222] text-white placeholder-neutral-500"
+          />
+          <input
+            value={year}
+            onChange={(e) => setYear(e.target.value)}
+            placeholder="Year"
+            className="flex-1 px-3 py-2 text-sm rounded-full bg-[#111111] border border-[#222222] text-white placeholder-neutral-500"
+          />
         </div>
 
         {loading ? (
           <Loader />
         ) : (
-          <Row title="All Series">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
             {filtered.map((movie) => (
-              <div key={movie.id} className="min-w-[140px] md:min-w-[180px]">
-                <MovieCard movie={movie} />
-              </div>
+              <MovieCard key={movie.id} movie={movie} />
             ))}
-          </Row>
+          </div>
         )}
 
-        <div className="mt-8 md:mt-10 flex justify-center gap-3">
+        <div className="flex items-center justify-center gap-4 mt-6">
           <button
             onClick={() => setPage(Math.max(page - 1, 1))}
-            className="rounded-full bg-[#1a1a1a] hover:bg-[#262626] px-4 py-2 text-xs md:text-sm"
+            className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#222222] text-sm"
           >
             Prev
           </button>
-          <span className="text-xs md:text-sm text-gray-400">Page {page}</span>
+          <span className="text-sm text-gray-400">Page {page}</span>
           <button
             onClick={() => setPage(page + 1)}
-            className="rounded-full bg-[#1a1a1a] hover:bg-[#262626] px-4 py-2 text-xs md:text-sm"
+            className="px-4 py-2 rounded-full bg-[#111111] hover:bg-[#222222] text-sm"
           >
             Next
           </button>

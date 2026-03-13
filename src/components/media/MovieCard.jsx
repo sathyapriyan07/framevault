@@ -4,8 +4,8 @@ import ProgressiveImage from '../ui/ProgressiveImage'
 
 export default function MovieCard({ movie }) {
   return (
-    <Link to={`/movie/${movie.id}`} className="block w-[140px] md:w-[160px] lg:w-[180px] flex-shrink-0">
-      <div className="relative rounded-lg overflow-hidden h-52 md:h-72 lg:h-80 shadow-sm">
+    <Link to={`/movie/${movie.id}`} className="block w-full">
+      <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-sm">
         <img 
           src={movie.poster_url} 
           alt={movie.title}
