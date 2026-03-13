@@ -9,19 +9,21 @@ export default function LogoCard({ logo }) {
   const svgFilename = `logo-${logo.id}.svg`
   
   return (
-    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[220px] flex-shrink-0">
-      <ProgressiveImage
-        src={logo.logo_url}
-        alt="Logo"
-        className="h-40 p-6"
-        imgClassName="object-contain"
-      />
-      <div className="p-4">
-        <div className="flex gap-2">
+    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[160px] sm:w-[200px] lg:w-[220px] flex-shrink-0">
+      <div className="aspect-square w-full flex items-center justify-center p-3 sm:p-4">
+        <ProgressiveImage
+          src={logo.logo_url}
+          alt="Logo"
+          className="w-full h-full"
+          imgClassName="object-contain w-full h-full"
+        />
+      </div>
+      <div className="p-2 sm:p-3">
+        <div className="flex gap-1.5">
           {pngUrl && (
             <button
               onClick={() => downloadFile(pngUrl, pngFilename)}
-              className="rounded-full bg-blue-600 hover:bg-blue-700 px-3 py-1 text-xs text-white transition"
+              className="flex-1 rounded-full bg-blue-600 hover:bg-blue-700 px-2 py-1 text-[10px] sm:text-xs text-white transition font-medium"
             >
               PNG
             </button>
@@ -29,17 +31,11 @@ export default function LogoCard({ logo }) {
           {svgUrl && (
             <button
               onClick={() => downloadFile(svgUrl, svgFilename)}
-              className="rounded-full bg-green-600 hover:bg-green-700 px-3 py-1 text-xs text-white transition"
+              className="flex-1 rounded-full bg-green-600 hover:bg-green-700 px-2 py-1 text-[10px] sm:text-xs text-white transition font-medium"
             >
               SVG
             </button>
           )}
-          <button
-            onClick={() => openDownload(logo.logo_url)}
-            className="rounded-full bg-neutral-700 hover:bg-neutral-600 px-3 py-1 text-xs text-white transition"
-          >
-            Open
-          </button>
         </div>
       </div>
     </motion.div>
