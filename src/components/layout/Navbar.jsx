@@ -1,4 +1,4 @@
-import { NavLink } from 'react-router-dom'
+import { NavLink, useLocation } from 'react-router-dom'
 import { useEffect, useState } from 'react'
 import { supabase } from '../../services/supabaseClient'
 import SearchModal from '../ui/SearchModal'
@@ -18,6 +18,7 @@ export default function Navbar() {
   const [role, setRole] = useState(null)
   const [isScrolled, setIsScrolled] = useState(false)
   const [showSearch, setShowSearch] = useState(false)
+  const location = useLocation()
 
   useEffect(() => {
     let isMounted = true
@@ -68,11 +69,14 @@ export default function Navbar() {
 
   return (
     <nav className={`sticky top-0 z-50 transition ${isScrolled ? 'bg-black/90 border-b border-white/10' : 'bg-transparent'} backdrop-blur`}>
+      {/* Top Row */}
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           <NavLink to="/" className="text-2xl font-heading font-semibold text-white">
             Media Archive
           </NavLink>
+          
+          {/* Desktop Navigation */}
           <div className="hidden md:flex items-center gap-5 text-sm">
             {navItems.map((item) => (
               <NavLink
@@ -86,13 +90,14 @@ export default function Navbar() {
               </NavLink>
             ))}
           </div>
-          <div className="hidden md:flex items-center gap-3">
+          
+          {/* Right Side Buttons */}
+          <div className="flex items-center gap-3">
             <button
               onClick={() => setShowSearch(true)}
-              className="rounded-full bg-white/10 px-4 py-2 text-white hover:bg-white/20"
+              className="rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/20 transition"
               aria-label="Open search"
             >
-              <span className="sr-only">Search</span>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white">
                 <path
                   d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm0 0 7 7"
@@ -103,17 +108,40 @@ export default function Navbar() {
               </svg>
             </button>
             {role === 'admin' ? (
-              <NavLink to="/admin" className="rounded-full bg-white/10 px-4 py-2 text-white hover:bg-white/20">
+              <NavLink to="/admin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
                 Admin
               </NavLink>
             ) : (
-              <NavLink to="/signin" className="rounded-full bg-white/10 px-4 py-2 text-white hover:bg-white/20">
+              <NavLink to="/signin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
                 {session?.user ? 'Account' : 'Sign In'}
               </NavLink>
             )}
           </div>
         </div>
       </div>
+
+      {/* Mobile Tab Bar */}
+      <div className="md:hidden border-t border-white/10">
+        <div className="flex gap-3 overflow-x-auto scroll-hidden px-4 py-3">
+          {navItems.map((item) => {
+            const isActive = location.pathname === item.to
+            return (
+              <NavLink
+                key={item.to}
+                to={item.to}
+                className={`px-4 py-2 text-sm whitespace-nowrap rounded-full transition ${
+                  isActive
+                    ? 'bg-blue-600 text-white'
+                    : 'bg-neutral-800 text-white hover:bg-neutral-700'
+                }`}
+              >
+                {item.label}
+              </NavLink>
+            )
+          })}
+        </div>
+      </div>
+
       {showSearch && <SearchModal onClose={() => setShowSearch(false)} />}
     </nav>
   )
