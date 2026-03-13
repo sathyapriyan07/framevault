@@ -7,8 +7,8 @@ export default function PosterCard({ poster }) {
   const filename = `poster-${poster.id}.jpg`
   
   return (
-    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[140px] sm:w-[180px] lg:w-[200px] flex-shrink-0">
-      <div className="aspect-[2/3] w-full">
+    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[140px] sm:w-[180px] lg:w-[220px] flex-shrink-0">
+      <div className="aspect-[2/3] overflow-hidden rounded-t-3xl">
         <ProgressiveImage src={poster.poster_url} alt="Poster" className="h-full" imgClassName="w-full h-full object-cover" />
       </div>
       <div className="p-2 sm:p-3">

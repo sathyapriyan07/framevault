@@ -9,13 +9,13 @@ export default function LogoCard({ logo }) {
   const svgFilename = `logo-${logo.id}.svg`
   
   return (
-    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[160px] sm:w-[200px] lg:w-[220px] flex-shrink-0">
+    <motion.div whileHover={{ scale: 1.03 }} className="rounded-3xl bg-dark-card overflow-hidden shadow-2xl w-[160px] sm:w-[200px] lg:w-[240px] flex-shrink-0">
       <div className="aspect-square w-full flex items-center justify-center p-3 sm:p-4">
-        <ProgressiveImage
+        <img
           src={logo.logo_url}
           alt="Logo"
-          className="w-full h-full"
-          imgClassName="object-contain w-full h-full"
+          className="max-w-[70%] max-h-[70%] object-contain"
+          loading="lazy"
         />
       </div>
       <div className="p-2 sm:p-3">

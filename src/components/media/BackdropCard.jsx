@@ -5,7 +5,7 @@ export default function BackdropCard({ backdrop }) {
   const filename = `backdrop-${backdrop.id}.jpg`
   
   return (
-    <div className="bg-neutral-900 rounded-2xl overflow-hidden w-[220px] sm:w-[260px] lg:w-[280px] flex-shrink-0 group cursor-pointer transition duration-300 hover:scale-105">
+    <div className="bg-neutral-900 rounded-2xl overflow-hidden w-[220px] sm:w-[260px] lg:w-[300px] flex-shrink-0 group cursor-pointer transition duration-300 hover:scale-105">
       <div className="aspect-[16/9] w-full overflow-hidden">
         <img
           src={backdrop.backdrop_url}

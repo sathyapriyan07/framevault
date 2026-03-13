@@ -122,14 +122,14 @@ export default function Navbar() {
 
       {/* Mobile Tab Bar */}
       <div className="md:hidden border-t border-white/10">
-        <div className="flex gap-3 overflow-x-auto scroll-hidden px-4 py-3">
+        <div className="flex gap-3 overflow-x-auto scroll-hidden px-4 py-3 whitespace-nowrap">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to
             return (
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`px-4 py-2 text-sm whitespace-nowrap rounded-full transition ${
+                className={`flex-shrink-0 px-4 py-2 text-sm whitespace-nowrap rounded-full transition ${
                   isActive
                     ? 'bg-blue-600 text-white'
                     : 'bg-neutral-800 text-white hover:bg-neutral-700'

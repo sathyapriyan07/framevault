@@ -58,29 +58,29 @@ export default function MovieDetailsPage() {
   return (
     <div className="min-h-screen">
       <section
-        className="relative h-[520px] bg-cover bg-center"
+        className="relative pt-24 pb-10 overflow-hidden h-[420px] sm:h-[520px] bg-cover bg-center"
         style={{ backgroundImage: `url(${movie.backdrop_url})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/40 via-black/80 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black" />
         <div className="absolute inset-0 flex items-end">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-10 w-full">
-            <div className="flex flex-col lg:flex-row gap-10 items-end">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 w-full">
+            <div className="flex flex-col lg:flex-row gap-6 sm:gap-10 items-end">
               <img
                 src={movie.poster_url}
                 alt={movie.title}
-                className="w-60 h-[360px] object-cover rounded-3xl shadow-2xl"
+                className="w-40 h-60 sm:w-60 sm:h-[360px] object-cover rounded-3xl shadow-2xl"
               />
               <div className="flex-1">
-                <p className="text-sm text-gray-300">{movie.release_year}</p>
-                <h1 className="text-5xl font-heading font-bold mb-4">{movie.title}</h1>
-                <div className="flex flex-wrap gap-2 mb-4">
+                <p className="text-xs sm:text-sm text-gray-300">{movie.release_year}</p>
+                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-3 sm:mb-4">{movie.title}</h1>
+                <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
                   {movie.genres?.map((genre) => (
                     <span key={genre} className="rounded-full bg-white/10 px-3 py-1 text-xs text-gray-200">
                       {genre}
                     </span>
                   ))}
                 </div>
-                <p className="text-gray-300 max-w-2xl">{movie.overview}</p>
+                <p className="text-sm sm:text-base text-gray-300 max-w-2xl line-clamp-3 sm:line-clamp-none">{movie.overview}</p>
               </div>
             </div>
           </div>
