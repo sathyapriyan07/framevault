@@ -7,7 +7,7 @@ export default function PosterCard({ poster }) {
   const filename = `poster-${poster.id}.jpg`
   
   return (
-    <div className="rounded-lg bg-dark-card overflow-hidden shadow-sm w-[140px] md:w-[180px] lg:w-[220px] flex-shrink-0">
+    <div className="rounded-lg bg-[#111111] overflow-hidden shadow-sm w-[140px] md:w-[180px] lg:w-[220px] flex-shrink-0">
       <div className="aspect-[2/3] overflow-hidden">
         <ProgressiveImage src={poster.poster_url} alt="Poster" className="h-full" imgClassName="w-full h-full object-cover" />
       </div>
@@ -15,13 +15,13 @@ export default function PosterCard({ poster }) {
         <div className="flex gap-1.5">
           <button 
             onClick={() => downloadFile(url, filename)} 
-            className="flex-1 rounded-full bg-blue-600 px-2 py-1 text-[10px] md:text-xs text-white"
+            className="flex-1 rounded-full bg-blue-600 hover:bg-blue-700 px-2 py-1 text-[10px] md:text-xs text-white"
           >
             Download
           </button>
           <button 
             onClick={() => openDownload(poster.poster_url)} 
-            className="rounded-full bg-neutral-700 px-2 py-1 text-[10px] md:text-xs text-white"
+            className="rounded-full bg-[#1a1a1a] hover:bg-[#262626] px-2 py-1 text-[10px] md:text-xs text-white"
           >
             Open
           </button>

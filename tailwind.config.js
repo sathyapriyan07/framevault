@@ -12,8 +12,8 @@ export default {
       },
       colors: {
         dark: {
-          bg: '#0b0b0b',
-          card: '#141414',
+          bg: '#000000',
+          card: '#111111',
         }
       }
     },

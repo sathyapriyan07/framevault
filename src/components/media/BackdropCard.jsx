@@ -7,7 +7,7 @@ export default function BackdropCard({ backdrop, variant = 'row' }) {
   const isRow = variant === 'row'
   
   return (
-    <div className={`bg-neutral-900 rounded-lg overflow-hidden shadow-sm ${
+    <div className={`bg-[#111111] rounded-lg overflow-hidden shadow-sm ${
       isRow ? 'w-[220px] md:w-[260px] lg:w-[300px] flex-shrink-0' : 'w-full'
     }`}>
       <div className="aspect-[16/9] w-full overflow-hidden">
@@ -21,13 +21,13 @@ export default function BackdropCard({ backdrop, variant = 'row' }) {
       <div className="flex gap-2 p-2">
         <button 
           onClick={() => downloadFile(url, filename)} 
-          className="px-3 py-1 text-xs rounded-full bg-blue-600 text-white"
+          className="px-3 py-1 text-xs rounded-full bg-blue-600 hover:bg-blue-700 text-white"
         >
           Download
         </button>
         <button 
           onClick={() => openDownload(backdrop.backdrop_url)} 
-          className="px-3 py-1 text-xs rounded-full bg-neutral-700 text-white"
+          className="px-3 py-1 text-xs rounded-full bg-[#1a1a1a] hover:bg-[#262626] text-white"
         >
           Open
         </button>

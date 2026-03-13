@@ -18,7 +18,7 @@ export default function HomePage() {
   }
 
   return (
-    <div className="min-h-screen overflow-x-hidden">
+    <div className="min-h-screen bg-black overflow-x-hidden">
       <section className="relative h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
         <div className="relative max-w-7xl mx-auto px-4 h-full flex flex-col justify-end pb-6 md:pb-12">
@@ -41,7 +41,7 @@ export default function HomePage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-6 md:py-12 space-y-6 md:space-y-12 overflow-x-hidden">
+      <section className="max-w-7xl mx-auto px-4 pt-4 md:py-12 space-y-6 md:space-y-12 overflow-x-hidden">
         {loading ? (
           <div className="text-center text-gray-400">Loading...</div>
         ) : (

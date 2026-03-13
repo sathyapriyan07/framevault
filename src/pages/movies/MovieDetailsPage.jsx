@@ -56,7 +56,7 @@ export default function MovieDetailsPage() {
   if (!movie) return <div className="text-center py-20">Loading...</div>
 
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen bg-black">
       <section
         className="relative h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: `url(${movie.backdrop_url})` }}
@@ -87,7 +87,7 @@ export default function MovieDetailsPage() {
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+      <section className="max-w-7xl mx-auto px-4 pt-4 md:py-12">
         <Tabs tabs={['Wallpapers', 'Logos', 'Posters', 'Backdrops']} activeTab={activeTab} onChange={setActiveTab} />
 
         {activeTab === 'Wallpapers' && (

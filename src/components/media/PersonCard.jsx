@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom'
 export default function PersonCard({ person }) {
   return (
     <Link to={`/person/${person.id}`} className="block w-[140px] md:w-[160px] lg:w-[180px] flex-shrink-0">
-      <div className="relative overflow-hidden rounded-lg bg-neutral-900 h-64 md:h-80 lg:h-[340px] shadow-sm">
+      <div className="relative overflow-hidden rounded-lg bg-[#111111] h-64 md:h-80 lg:h-[340px] shadow-sm">
         <img
           src={person.profile_url || 'https://via.placeholder.com/300x450?text=No+Image'}
           alt={person.name}
