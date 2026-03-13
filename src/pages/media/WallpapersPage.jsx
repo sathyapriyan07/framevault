@@ -7,14 +7,14 @@ export default function WallpapersPage() {
   const { data, loading } = useWallpapers()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-heading font-bold mb-8">Wallpapers</h1>
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+      <h1 className="text-2xl md:text-4xl font-heading font-bold mb-6 md:mb-8">Wallpapers</h1>
       {loading ? (
         <Loader />
       ) : (
         <Row title="All Wallpapers">
           {data.map((wallpaper) => (
-            <div key={wallpaper.id} className="min-w-[260px]">
+            <div key={wallpaper.id} className="min-w-[220px] md:min-w-[260px]">
               <WallpaperCard wallpaper={wallpaper} />
             </div>
           ))}

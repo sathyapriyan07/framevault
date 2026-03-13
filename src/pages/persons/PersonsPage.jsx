@@ -19,14 +19,14 @@ export default function PersonsPage() {
   }, [])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-heading font-bold mb-8">Persons</h1>
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+      <h1 className="text-2xl md:text-4xl font-heading font-bold mb-6 md:mb-8">Persons</h1>
       {loading ? (
         <Loader />
       ) : (
         <Row title="Featured Persons">
           {persons.map((person) => (
-            <div key={person.id} className="min-w-[200px]">
+            <div key={person.id} className="min-w-[140px] md:min-w-[200px]">
               <PersonCard person={person} />
             </div>
           ))}

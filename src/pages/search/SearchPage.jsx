@@ -32,14 +32,14 @@ export default function SearchPage() {
   }, [query, setSearchParams])
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <div className="max-w-2xl mb-6">
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+      <div className="max-w-2xl mb-4 md:mb-6">
         <SearchInput value={query} onChange={setQuery} placeholder="Search movies and series..." />
       </div>
-      <p className="text-gray-400 mb-6">Found {results.length} results</p>
+      <p className="text-xs md:text-sm text-gray-400 mb-4 md:mb-6">Found {results.length} results</p>
       <Row title="Results">
         {results.map((movie) => (
-          <div key={movie.id} className="min-w-[180px]">
+          <div key={movie.id} className="min-w-[140px] md:min-w-[180px]">
             <MovieCard movie={movie} />
           </div>
         ))}

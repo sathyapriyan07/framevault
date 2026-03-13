@@ -7,14 +7,14 @@ export default function LogosPage() {
   const { data, loading } = useLogos()
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-heading font-bold mb-8">Logos</h1>
+    <div className="max-w-7xl mx-auto px-4 py-6 md:py-12">
+      <h1 className="text-2xl md:text-4xl font-heading font-bold mb-6 md:mb-8">Logos</h1>
       {loading ? (
         <Loader />
       ) : (
         <Row title="All Logos">
           {data.map((logo) => (
-            <div key={logo.id} className="min-w-[200px]">
+            <div key={logo.id} className="min-w-[150px] md:min-w-[200px]">
               <LogoCard logo={logo} />
             </div>
           ))}

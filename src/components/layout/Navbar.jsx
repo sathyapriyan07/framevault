@@ -68,37 +68,21 @@ export default function Navbar() {
   }, [])
 
   return (
-    <nav className={`sticky top-0 z-50 transition ${isScrolled ? 'bg-black/90 border-b border-white/10' : 'bg-transparent'} backdrop-blur`}>
-      {/* Top Row */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex items-center justify-between h-16">
-          <NavLink to="/" className="text-2xl font-heading font-semibold text-white">
+    <nav className="sticky top-0 z-50 bg-black/95 backdrop-blur border-b border-neutral-800">
+      {/* Mobile Header */}
+      <div className="md:hidden">
+        <div className="flex items-center justify-between px-4 h-14 border-b border-neutral-800">
+          <NavLink to="/" className="text-xl font-heading font-semibold text-white">
             Media Archive
           </NavLink>
           
-          {/* Desktop Navigation */}
-          <div className="hidden md:flex items-center gap-5 text-sm">
-            {navItems.map((item) => (
-              <NavLink
-                key={item.to}
-                to={item.to}
-                className={({ isActive }) =>
-                  `transition ${isActive ? 'text-white' : 'text-gray-400 hover:text-white'}`
-                }
-              >
-                {item.label}
-              </NavLink>
-            ))}
-          </div>
-          
-          {/* Right Side Buttons */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             <button
               onClick={() => setShowSearch(true)}
-              className="rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/20 transition"
-              aria-label="Open search"
+              className="p-2 text-white"
+              aria-label="Search"
             >
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" className="text-white">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
                 <path
                   d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm0 0 7 7"
                   stroke="currentColor"
@@ -108,20 +92,24 @@ export default function Navbar() {
               </svg>
             </button>
             {role === 'admin' ? (
-              <NavLink to="/admin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
-                Admin
+              <NavLink to="/admin" className="p-2 text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </NavLink>
             ) : (
-              <NavLink to="/signin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
-                {session?.user ? 'Account' : 'Sign In'}
+              <NavLink to="/signin" className="p-2 text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                  <circle cx="12" cy="8" r="4" stroke="currentColor" strokeWidth="2"/>
+                  <path d="M4 20c0-4 3.5-6 8-6s8 2 8 6" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+                </svg>
               </NavLink>
             )}
           </div>
         </div>
-      </div>
 
-      {/* Mobile Tab Bar */}
-      <div className="md:hidden border-t border-white/10">
+        {/* Mobile Navigation Tabs */}
         <div className="flex gap-3 overflow-x-auto scroll-hidden px-4 py-3 whitespace-nowrap">
           {navItems.map((item) => {
             const isActive = location.pathname === item.to
@@ -129,16 +117,67 @@ export default function Navbar() {
               <NavLink
                 key={item.to}
                 to={item.to}
-                className={`flex-shrink-0 px-4 py-2 text-sm whitespace-nowrap rounded-full transition ${
+                className={`flex-shrink-0 px-4 py-2 text-sm rounded-full ${
                   isActive
                     ? 'bg-blue-600 text-white'
-                    : 'bg-neutral-800 text-white hover:bg-neutral-700'
+                    : 'bg-neutral-800 text-white'
                 }`}
               >
                 {item.label}
               </NavLink>
             )
           })}
+        </div>
+      </div>
+
+      {/* Desktop Header */}
+      <div className="hidden md:block">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center justify-between h-16">
+            <NavLink to="/" className="text-2xl font-heading font-semibold text-white">
+              Media Archive
+            </NavLink>
+            
+            <div className="flex items-center gap-5 text-sm">
+              {navItems.map((item) => (
+                <NavLink
+                  key={item.to}
+                  to={item.to}
+                  className={({ isActive }) =>
+                    `transition ${isActive ? 'text-white' : 'text-gray-400 hover:text-white'}`
+                  }
+                >
+                  {item.label}
+                </NavLink>
+              ))}
+            </div>
+            
+            <div className="flex items-center gap-3">
+              <button
+                onClick={() => setShowSearch(true)}
+                className="rounded-full bg-white/10 px-3 py-2 text-white hover:bg-white/20 transition"
+                aria-label="Search"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
+                  <path
+                    d="M11 18a7 7 0 1 1 0-14 7 7 0 0 1 0 14Zm0 0 7 7"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                  />
+                </svg>
+              </button>
+              {role === 'admin' ? (
+                <NavLink to="/admin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
+                  Admin
+                </NavLink>
+              ) : (
+                <NavLink to="/signin" className="rounded-full bg-blue-600 px-4 py-2 text-white text-sm hover:bg-blue-700 transition">
+                  {session?.user ? 'Account' : 'Sign In'}
+                </NavLink>
+              )}
+            </div>
+          </div>
         </div>
       </div>
 

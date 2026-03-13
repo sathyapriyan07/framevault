@@ -58,40 +58,40 @@ export default function MovieDetailsPage() {
   return (
     <div className="min-h-screen">
       <section
-        className="relative pt-24 pb-10 overflow-hidden h-[420px] sm:h-[520px] bg-cover bg-center"
+        className="relative h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden bg-cover bg-center"
         style={{ backgroundImage: `url(${movie.backdrop_url})` }}
       >
-        <div className="absolute inset-0 bg-gradient-to-b from-black/70 via-black/40 to-black" />
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent" />
         <div className="absolute inset-0 flex items-end">
-          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pb-6 sm:pb-10 w-full">
-            <div className="flex flex-col lg:flex-row gap-6 sm:gap-10 items-end">
+          <div className="max-w-7xl mx-auto px-4 pb-6 md:pb-10 w-full">
+            <div className="flex gap-4 md:gap-6 lg:gap-10 items-end">
               <img
                 src={movie.poster_url}
                 alt={movie.title}
-                className="w-40 h-60 sm:w-60 sm:h-[360px] object-cover rounded-3xl shadow-2xl"
+                className="w-24 h-36 md:w-40 md:h-60 lg:w-60 lg:h-[360px] object-cover rounded-lg md:rounded-2xl shadow-lg"
               />
               <div className="flex-1">
-                <p className="text-xs sm:text-sm text-gray-300">{movie.release_year}</p>
-                <h1 className="text-3xl sm:text-4xl lg:text-5xl font-heading font-bold mb-3 sm:mb-4">{movie.title}</h1>
-                <div className="flex flex-wrap gap-2 mb-3 sm:mb-4">
+                <p className="text-[10px] md:text-sm text-gray-300 mb-1">{movie.release_year}</p>
+                <h1 className="text-xl md:text-3xl lg:text-5xl font-heading font-bold mb-2 md:mb-4">{movie.title}</h1>
+                <div className="flex flex-wrap gap-1.5 md:gap-2 mb-2 md:mb-4">
                   {movie.genres?.map((genre) => (
-                    <span key={genre} className="rounded-full bg-white/10 px-3 py-1 text-xs text-gray-200">
+                    <span key={genre} className="rounded-full bg-white/10 px-2 md:px-3 py-0.5 md:py-1 text-[10px] md:text-xs text-gray-200">
                       {genre}
                     </span>
                   ))}
                 </div>
-                <p className="text-sm sm:text-base text-gray-300 max-w-2xl line-clamp-3 sm:line-clamp-none">{movie.overview}</p>
+                <p className="text-xs md:text-base text-gray-300 max-w-2xl line-clamp-2 md:line-clamp-3">{movie.overview}</p>
               </div>
             </div>
           </div>
         </div>
       </section>
 
-      <section className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+      <section className="max-w-7xl mx-auto px-4 py-6 md:py-12">
         <Tabs tabs={['Wallpapers', 'Logos', 'Posters', 'Backdrops']} activeTab={activeTab} onChange={setActiveTab} />
 
         {activeTab === 'Wallpapers' && (
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             <MediaGrid className="lg:grid-cols-4">
               {wallpapers.map((item) => (
                 <WallpaperCard key={item.id} wallpaper={item} />
@@ -100,7 +100,7 @@ export default function MovieDetailsPage() {
           </div>
         )}
         {activeTab === 'Logos' && (
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             <MediaGrid className="lg:grid-cols-4">
               {logos.map((item) => (
                 <LogoCard key={item.id} logo={item} />
@@ -109,7 +109,7 @@ export default function MovieDetailsPage() {
           </div>
         )}
         {activeTab === 'Posters' && (
-          <div className="mt-8">
+          <div className="mt-6 md:mt-8">
             <MediaGrid className="lg:grid-cols-5">
               {posters.map((item) => (
                 <PosterCard key={item.id} poster={item} />
@@ -118,12 +118,12 @@ export default function MovieDetailsPage() {
           </div>
         )}
         {activeTab === 'Backdrops' && (
-          <div className="mt-8">
-            <MediaGrid className="lg:grid-cols-4">
+          <div className="mt-6 md:mt-8">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
               {backdrops.map((item) => (
-                <BackdropCard key={item.id} backdrop={item} />
+                <BackdropCard key={item.id} backdrop={item} variant="grid" />
               ))}
-            </MediaGrid>
+            </div>
           </div>
         )}
       </section>

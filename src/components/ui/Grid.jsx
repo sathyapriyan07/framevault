@@ -1,6 +1,6 @@
 export default function Grid({ children, className = '' }) {
   return (
-    <div className={`grid grid-cols-2 gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${className}`}>
+    <div className={`grid grid-cols-2 gap-3 md:gap-6 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 ${className}`}>
       {children}
     </div>
   )

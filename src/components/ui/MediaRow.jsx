@@ -110,7 +110,7 @@ export default function MediaRow({ type, limit = 10 }) {
   }
 
   return (
-    <div className="flex gap-3 sm:gap-5 lg:gap-6 overflow-x-auto scroll-hidden scroll-smooth pb-4 touch-pan-x">
+    <div className="flex gap-3 md:gap-5 overflow-x-auto scroll-hidden pb-4">
       {items.map(renderCard)}
     </div>
   )
