@@ -13,6 +13,9 @@ export default function AdminAddPerson() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
+  const [searchRan, setSearchRan] = useState(false)
+  const [searchCount, setSearchCount] = useState(0)
+  const [searchError, setSearchError] = useState('')
 
   const [manualForm, setManualForm] = useState({
     name: '',
@@ -56,16 +59,17 @@ export default function AdminAddPerson() {
   const searchTMDB = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
-    setMessage('')
+    setSearchRan(true)
+    setSearchError('')
     try {
       const results = await tmdbService.searchMulti(searchQuery)
       const filtered = (results.results || []).filter((item) => item.media_type === 'person')
       setSearchResults(filtered)
-      setMessageType('success')
-      setMessage(`Found ${filtered.length} results`)
+      setSearchCount(filtered.length)
     } catch (error) {
-      setMessageType('error')
-      setMessage(`Error searching TMDB: ${error?.message || 'Unknown error'}`)
+      setSearchResults([])
+      setSearchCount(0)
+      setSearchError(`Error searching TMDB: ${error?.message || 'Unknown error'}`)
     }
     setSearching(false)
   }
@@ -74,6 +78,9 @@ export default function AdminAddPerson() {
     setTmdbId(item.id.toString())
     setSearchResults([])
     setSearchQuery('')
+    setSearchRan(false)
+    setSearchCount(0)
+    setSearchError('')
   }
 
   const fetchFromTMDB = async () => {
@@ -169,215 +176,204 @@ export default function AdminAddPerson() {
   }
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-heading font-bold mb-8">Add Person</h1>
+    <div className="max-w-md mx-auto px-4 py-6 space-y-4">
+      <h1 className="text-xl font-semibold mb-4 font-heading">Add Person</h1>
 
-      <div className="bg-dark-card p-8 rounded-lg mb-8">
-        <h2 className="text-2xl font-heading font-semibold mb-4">Import from TMDB</h2>
-        <div className="mb-6">
-          <label className="block mb-2">Search TMDB</label>
+      <div className="bg-[#111] rounded-xl p-4 space-y-3">
+        <h2 className="text-sm font-medium font-heading text-neutral-200">Import from TMDB</h2>
+
+        <div className="space-y-3">
           <div className="flex gap-2">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchTMDB()}
-              className="flex-1 px-4 py-2 bg-gray-800 rounded"
-              placeholder="Search for persons..."
+              className="flex-1 px-3 py-2 text-sm rounded-lg bg-black border border-[#222] focus:outline-none focus:ring-2 focus:ring-purple-600/40"
+              placeholder="Search person"
             />
             <button
               onClick={searchTMDB}
               disabled={searching}
-              className="bg-purple-600 hover:bg-purple-700 px-6 py-2 rounded disabled:opacity-50"
+              className="px-4 py-2 text-sm rounded-lg bg-purple-600 text-white disabled:opacity-50"
             >
-              {searching ? 'Searching...' : 'Search'}
+              {searching ? '...' : 'Search'}
             </button>
           </div>
-        </div>
 
-        {searchResults.length > 0 && (
-          <div className="mb-6 max-h-96 overflow-y-auto">
-            <h3 className="font-semibold mb-3">Search Results:</h3>
-            <div className="space-y-2">
+          {searchResults.length > 0 && (
+            <div className="max-h-52 overflow-y-auto space-y-2">
               {searchResults.map((item) => (
-                <div
+                <button
                   key={item.id}
+                  type="button"
                   onClick={() => selectFromSearch(item)}
-                  className="flex gap-4 p-3 bg-gray-800 rounded hover:bg-gray-700 cursor-pointer transition"
+                  className="w-full text-left flex items-center gap-3 bg-[#161616] rounded-lg p-2 hover:bg-[#1c1c1c] transition"
                 >
-                  {item.profile_path && (
+                  {item.profile_path ? (
                     <img
                       src={tmdbService.getImageUrl(item.profile_path, 'w92')}
                       alt={item.name}
-                      className="w-12 h-12 object-cover rounded-full"
+                      className="w-10 h-10 rounded-full object-cover flex-shrink-0"
+                      loading="lazy"
                     />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full bg-black/40 border border-[#222] flex-shrink-0" />
                   )}
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{item.name}</h4>
-                    <p className="text-sm text-gray-400">{item.known_for_department || 'Person'}</p>
+                  <div className="min-w-0">
+                    <p className="text-sm font-medium font-heading truncate">{item.name}</p>
+                    <p className="text-xs text-neutral-400 font-body">{item.known_for_department || 'Person'}</p>
                   </div>
-                </div>
+                </button>
               ))}
             </div>
-          </div>
-        )}
+          )}
 
-        <div className="mb-4">
-          <label className="block mb-2">TMDB Person ID</label>
+          {searchError && <p className="text-xs text-red-400 font-body">{searchError}</p>}
+          {!searchError && searchRan && <p className="text-xs text-green-400 font-body">Found {searchCount} results</p>}
+
           <input
             type="text"
             value={tmdbId}
             onChange={(e) => setTmdbId(e.target.value)}
-            className="w-full px-4 py-2 bg-gray-800 rounded"
-            placeholder="Enter TMDB person ID"
+            className="w-full px-3 py-2 text-sm rounded-lg bg-[#1a1a1a] border border-[#222]"
+            placeholder="TMDB person ID"
           />
-        </div>
-        <button
-          onClick={fetchFromTMDB}
-          disabled={loading}
-          className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded disabled:opacity-50"
-        >
-          {loading ? 'Loading...' : 'Fetch Data'}
-        </button>
-        {personData && (
-          <button
-            onClick={saveImportedPerson}
-            className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded ml-4"
-          >
-            Save Person
-          </button>
-        )}
-        {personData && (
-          <div className="mt-6 p-4 bg-gray-800 rounded">
-            <h3 className="font-semibold mb-2">{personData.name}</h3>
-            <p className="text-sm text-gray-400">{personData.biography}</p>
+
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={fetchFromTMDB}
+              disabled={loading || !tmdbId}
+              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white disabled:opacity-60"
+            >
+              {loading ? 'Loading...' : 'Fetch Data'}
+            </button>
+            {personData && (
+              <button onClick={saveImportedPerson} className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white">
+                Save Person
+              </button>
+            )}
           </div>
-        )}
+
+          {personData && (
+            <div className="rounded-lg bg-[#161616] border border-white/10 p-3">
+              <p className="text-sm font-medium font-heading">{personData.name}</p>
+              {personData.biography && <p className="text-xs text-neutral-400 font-body mt-2 line-clamp-4">{personData.biography}</p>}
+            </div>
+          )}
+        </div>
       </div>
 
-      <div className="bg-dark-card p-8 rounded-lg mb-8">
-        <h2 className="text-2xl font-heading font-semibold mb-4">Add Manually</h2>
-        <form onSubmit={handleManualSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2">Name</label>
-            <input
-              type="text"
-              value={manualForm.name}
-              onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Profile Image URL</label>
-            <input
-              type="url"
-              value={manualForm.profile_url}
-              onChange={(e) => setManualForm({ ...manualForm, profile_url: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Biography</label>
-            <textarea
-              value={manualForm.biography}
-              onChange={(e) => setManualForm({ ...manualForm, biography: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              rows="4"
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Birth Date</label>
+      <div className="bg-[#111] rounded-xl p-4 space-y-3">
+        <h2 className="text-sm font-medium font-heading text-neutral-200">Add Manually</h2>
+        <form onSubmit={handleManualSubmit} className="space-y-3">
+          <input
+            type="text"
+            value={manualForm.name}
+            onChange={(e) => setManualForm({ ...manualForm, name: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+            placeholder="Name"
+            required
+          />
+
+          <input
+            type="url"
+            value={manualForm.profile_url}
+            onChange={(e) => setManualForm({ ...manualForm, profile_url: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+            placeholder="Profile image URL"
+            required
+          />
+
+          <textarea
+            value={manualForm.biography}
+            onChange={(e) => setManualForm({ ...manualForm, biography: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222] h-24"
+            placeholder="Biography"
+          />
+
+          <div className="grid grid-cols-2 gap-3">
             <input
               type="date"
               value={manualForm.birthday}
               onChange={(e) => setManualForm({ ...manualForm, birthday: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
+              className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
             />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Place of Birth</label>
             <input
               type="text"
               value={manualForm.place_of_birth}
               onChange={(e) => setManualForm({ ...manualForm, place_of_birth: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
+              className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+              placeholder="Place of birth"
             />
           </div>
-          <div className="mb-4">
-            <label className="block mb-2">Known For</label>
-            <input
-              type="text"
-              value={manualForm.known_for}
-              onChange={(e) => setManualForm({ ...manualForm, known_for: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              placeholder="Actor, Director, etc."
-            />
-          </div>
-          <button type="submit" className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded">
+
+          <input
+            type="text"
+            value={manualForm.known_for}
+            onChange={(e) => setManualForm({ ...manualForm, known_for: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+            placeholder="Known for (Actor, Director, etc.)"
+          />
+
+          <button type="submit" className="w-full px-4 py-2 text-sm rounded-lg bg-green-600 text-white">
             Add Person
           </button>
         </form>
       </div>
 
-      <div className="bg-dark-card p-8 rounded-lg">
-        <h2 className="text-2xl font-heading font-semibold mb-4">Add Person Wallpaper</h2>
-        <form onSubmit={handleWallpaperSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2">Person</label>
-            <select
-              value={wallpaperForm.person_id}
-              onChange={(e) => setWallpaperForm({ ...wallpaperForm, person_id: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              required
-            >
-              <option value="">Select person</option>
-              {persons.map((person) => (
-                <option key={person.id} value={person.id}>
-                  {person.name}
-                </option>
-              ))}
-            </select>
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Wallpaper Image URL</label>
-            <input
-              type="url"
-              value={wallpaperForm.image_url}
-              onChange={(e) => setWallpaperForm({ ...wallpaperForm, image_url: e.target.value })}
-              onBlur={(e) => resolveImageResolution(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-              required
-            />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Resolution</label>
+      <div className="bg-[#111] rounded-xl p-4 space-y-3">
+        <h2 className="text-sm font-medium font-heading text-neutral-200">Add Person Wallpaper</h2>
+        <form onSubmit={handleWallpaperSubmit} className="space-y-3">
+          <select
+            value={wallpaperForm.person_id}
+            onChange={(e) => setWallpaperForm({ ...wallpaperForm, person_id: e.target.value })}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+            required
+          >
+            <option value="">Select person</option>
+            {persons.map((person) => (
+              <option key={person.id} value={person.id}>
+                {person.name}
+              </option>
+            ))}
+          </select>
+
+          <input
+            type="url"
+            value={wallpaperForm.image_url}
+            onChange={(e) => setWallpaperForm({ ...wallpaperForm, image_url: e.target.value })}
+            onBlur={(e) => resolveImageResolution(e.target.value)}
+            className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+            placeholder="Wallpaper image URL"
+            required
+          />
+
+          <div className="grid grid-cols-2 gap-3">
             <input
               type="text"
               value={wallpaperForm.resolution}
               onChange={(e) => setWallpaperForm({ ...wallpaperForm, resolution: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
+              className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
               placeholder="3840x2160"
             />
-          </div>
-          <div className="mb-4">
-            <label className="block mb-2">Download URL</label>
             <input
               type="url"
               value={wallpaperForm.download_url}
               onChange={(e) => setWallpaperForm({ ...wallpaperForm, download_url: e.target.value })}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
+              className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+              placeholder="Download URL (optional)"
             />
           </div>
-          <button type="submit" className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded">
+
+          <button type="submit" className="w-full px-4 py-2 text-sm rounded-lg bg-green-600 text-white">
             Add Wallpaper
           </button>
         </form>
       </div>
 
       {message && (
-        <p className={`mt-6 ${messageType === 'error' ? 'text-red-400' : 'text-green-400'}`}>{message}</p>
+        <p className={`text-xs ${messageType === 'error' ? 'text-red-400' : 'text-green-400'} font-body`}>{message}</p>
       )}
     </div>
   )
