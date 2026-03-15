@@ -1,9 +1,8 @@
 import { downloadFile } from '../../utils/downloadHelper'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function LogoCard({ logo }) {
-  const src = getMediaImageUrl('logos', logo)
-  const primaryDownloadUrl = getMediaDownloadUrl('logos', logo)
+  const src = logo.logo_url
+  const primaryDownloadUrl = logo.png_download || logo.logo_url
   const svgUrl = logo.svg_download
   const primaryFilename = `logo-${logo.id}.png`
   const svgFilename = `logo-${logo.id}.svg`

@@ -1,9 +1,8 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function BackdropCard({ backdrop, variant = 'row' }) {
-  const src = getMediaImageUrl('backdrops', backdrop)
-  const url = getMediaDownloadUrl('backdrops', backdrop)
+  const src = backdrop.backdrop_url
+  const url = backdrop.download_url || backdrop.backdrop_url
   const filename = `backdrop-${backdrop.id}.jpg`
   
   const isRow = variant === 'row'

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom'
 import { tmdbService } from '../../services/tmdbService'
 import { movieService } from '../../services/movieService'
 import { supabase } from '../../services/supabaseClient'
-import { mediaStorageService } from '../../services/mediaStorageService'
 
 export default function AdminAddMovie() {
   const [tmdbId, setTmdbId] = useState('')
@@ -12,7 +11,6 @@ export default function AdminAddMovie() {
   const [message, setMessage] = useState('')
   const [messageType, setMessageType] = useState('success')
   const [movieData, setMovieData] = useState(null)
-  const [images, setImages] = useState(null)
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
@@ -74,10 +72,7 @@ export default function AdminAddMovie() {
       const details =
         type === 'movie' ? await tmdbService.getMovieDetails(tmdbId) : await tmdbService.getTVDetails(tmdbId)
 
-      const imgs = type === 'movie' ? await tmdbService.getMovieImages(tmdbId) : await tmdbService.getTVImages(tmdbId)
-
       setMovieData(details)
-      setImages(imgs)
       setMessageType('success')
       setMessage('Data fetched successfully!')
     } catch (error) {
@@ -92,15 +87,26 @@ export default function AdminAddMovie() {
 
     const releaseDate = movieData.release_date || movieData.first_air_date
     const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : null
+    const runtime =
+      type === 'movie'
+        ? movieData.runtime ?? null
+        : Array.isArray(movieData.episode_run_time) && movieData.episode_run_time.length
+          ? movieData.episode_run_time[0]
+          : null
 
     const movie = {
       tmdb_id: movieData.id,
       title: movieData.title || movieData.name,
+      original_title: movieData.original_title || movieData.original_name || null,
       type,
-      poster_url: tmdbService.getImageUrl(movieData.poster_path),
-      backdrop_url: tmdbService.getImageUrl(movieData.backdrop_path),
       overview: movieData.overview,
+      release_date: releaseDate || null,
       release_year: Number.isFinite(releaseYear) ? releaseYear : null,
+      poster_path: movieData.poster_path || null,
+      backdrop_path: movieData.backdrop_path || null,
+      vote_average: typeof movieData.vote_average === 'number' ? movieData.vote_average : null,
+      runtime,
+      status: movieData.status || null,
       genres: movieData.genres?.map((g) => g.name) || []
     }
 
@@ -112,59 +118,10 @@ export default function AdminAddMovie() {
       return
     }
 
-    if (images && savedMovie) {
-      await saveImages(savedMovie[0].id)
-    }
-
     setMessageType('success')
-    setMessage('Movie saved successfully!')
+    setMessage('Movie saved successfully (metadata only). Add assets manually in Admin Media Manager.')
     setMovieData(null)
-    setImages(null)
     setTmdbId('')
-  }
-
-  const saveImages = async (movieId) => {
-    if (images.logos) {
-      for (const logo of images.logos.slice(0, 5)) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'logos',
-          movieId,
-          remoteUrl: tmdbService.getImageUrl(logo.file_path),
-          width: logo.width ?? null,
-          height: logo.height ?? null,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-    }
-
-    if (images.posters) {
-      for (const poster of images.posters.slice(0, 10)) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'posters',
-          movieId,
-          remoteUrl: tmdbService.getImageUrl(poster.file_path),
-          width: poster.width ?? null,
-          height: poster.height ?? null,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-    }
-
-    if (images.backdrops) {
-      for (const backdrop of images.backdrops.slice(0, 10)) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'backdrops',
-          movieId,
-          remoteUrl: tmdbService.getImageUrl(backdrop.file_path),
-          width: backdrop.width ?? null,
-          height: backdrop.height ?? null,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-    }
   }
 
   const [manualForm, setManualForm] = useState({

@@ -1,11 +1,10 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
 import { motion } from 'framer-motion'
 import ProgressiveImage from '../ui/ProgressiveImage'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function WallpaperCard({ wallpaper }) {
-  const src = getMediaImageUrl('wallpapers', wallpaper)
-  const url = getMediaDownloadUrl('wallpapers', wallpaper)
+  const src = wallpaper.image_url
+  const url = wallpaper.download_url || wallpaper.image_url
   const filename = `wallpaper-${wallpaper.id}.jpg`
   
   return (

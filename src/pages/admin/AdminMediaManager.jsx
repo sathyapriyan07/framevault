@@ -10,8 +10,6 @@ import { posterService } from '../../services/posterService'
 import { backdropService } from '../../services/backdropService'
 import { personService } from '../../services/personService'
 import { personWallpaperService } from '../../services/personWallpaperService'
-import { tmdbImageService } from '../../services/tmdbImageService'
-import { mediaStorageService } from '../../services/mediaStorageService'
 
 export default function AdminMediaManager() {
   const [session, setSession] = useState(null)
@@ -191,67 +189,10 @@ export default function AdminMediaManager() {
   }
 
   const syncMovieImages = async (movie) => {
+    // Intentionally disabled: assets are curated and added manually.
     if (!movie?.tmdb_id) return
-    setMessage('')
-    setLoadingData(true)
-    try {
-      const tmdbImages = await tmdbImageService.fetchMovieImages(movie.tmdb_id)
-      const [logosRes, postersRes, backdropsRes] = await Promise.all([
-        supabase.from('logos').select('logo_url').eq('movie_id', movie.id),
-        supabase.from('posters').select('poster_url').eq('movie_id', movie.id),
-        supabase.from('backdrops').select('backdrop_url').eq('movie_id', movie.id)
-      ])
-
-      const existingLogos = new Set((logosRes.data || []).map((item) => item.logo_url))
-      const existingPosters = new Set((postersRes.data || []).map((item) => item.poster_url))
-      const existingBackdrops = new Set((backdropsRes.data || []).map((item) => item.backdrop_url))
-
-      const newLogos = (tmdbImages.logos || []).filter((item) => item.image_url && !existingLogos.has(item.image_url))
-      const newPosters = (tmdbImages.posters || []).filter((item) => item.image_url && !existingPosters.has(item.image_url))
-      const newBackdrops = (tmdbImages.backdrops || []).filter((item) => item.image_url && !existingBackdrops.has(item.image_url))
-
-      for (const item of newLogos) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'logos',
-          movieId: movie.id,
-          remoteUrl: item.image_url,
-          width: item.width,
-          height: item.height,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-      for (const item of newPosters) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'posters',
-          movieId: movie.id,
-          remoteUrl: item.image_url,
-          width: item.width,
-          height: item.height,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-      for (const item of newBackdrops) {
-        await mediaStorageService.uploadAndInsertMovieMedia({
-          type: 'backdrops',
-          movieId: movie.id,
-          remoteUrl: item.image_url,
-          width: item.width,
-          height: item.height,
-          requireStorage: true,
-          allowLegacyFallback: false
-        })
-      }
-
-      setMessageType('success')
-      setMessage('TMDB images synced.')
-      await loadData()
-    } catch (error) {
-      setMessageType('error')
-      setMessage(error?.message || 'Sync failed')
-    }
-    setLoadingData(false)
+    setMessageType('success')
+    setMessage('TMDB image sync is disabled. Add logos/posters/backdrops/wallpapers manually.')
   }
 
   return (

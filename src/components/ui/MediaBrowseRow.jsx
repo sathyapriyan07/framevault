@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
-import { getMediaImageUrl } from '../../utils/mediaStorage'
 
 const VIEW_ALL_ROUTE_BY_TYPE = {
   wallpapers: '/wallpapers',
@@ -130,7 +129,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
         <div className="flex gap-3 overflow-x-auto pb-2 scroll-hidden">
           {items.map((item) => {
             if (type === 'logos') {
-              const src = getMediaImageUrl('logos', item)
+              const src = item.logo_url
               return (
                 <button
                   key={item.id}
@@ -144,7 +143,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
             }
 
             if (type === 'posters') {
-              const src = getMediaImageUrl('posters', item)
+              const src = item.poster_url
               return (
                 <button
                   key={item.id}
@@ -158,7 +157,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
             }
 
             if (type === 'backdrops') {
-              const src = getMediaImageUrl('backdrops', item)
+              const src = item.backdrop_url
               return (
                 <button
                   key={item.id}
@@ -172,7 +171,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
             }
 
             if (type === 'wallpapers') {
-              const src = getMediaImageUrl('wallpapers', item)
+              const src = item.image_url
               return (
                 <button
                   key={item.id}

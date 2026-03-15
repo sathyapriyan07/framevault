@@ -2,11 +2,11 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
 import { downloadFile } from '../../utils/downloadHelper'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
+import { tmdbService } from '../../services/tmdbService'
 
 function LogoTile({ item }) {
-  const src = getMediaImageUrl('logos', item)
-  const downloadUrl = getMediaDownloadUrl('logos', item)
+  const src = item.logo_url
+  const downloadUrl = item.png_download || item.logo_url
   const svgUrl = item.svg_download || null
 
   return (
@@ -79,11 +79,13 @@ function PersonTile({ person }) {
 }
 
 function MovieTile({ movie }) {
+  const posterSrc = movie.poster_url || tmdbService.getImageUrl(movie.poster_path, 'w342')
+
   return (
     <Link to={`/movie/${movie.id}`} className="block w-full">
       <div className="relative aspect-[2/3] rounded-lg overflow-hidden bg-[#111]">
-        {movie.poster_url ? (
-          <img src={movie.poster_url} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
+        {posterSrc ? (
+          <img src={posterSrc} alt={movie.title} className="w-full h-full object-cover" loading="lazy" />
         ) : (
           <div className="w-full h-full bg-black/30" />
         )}
@@ -111,7 +113,7 @@ export default function MediaDenseGrid({ type, limit = 24 }) {
         case 'movies':
           query = supabase
             .from('movies')
-            .select('id,title,type,poster_url,release_year')
+            .select('id,title,type,poster_url,poster_path,release_year')
             .eq('type', 'movie')
             .order('created_at', { ascending: false })
             .limit(limit)
@@ -119,7 +121,7 @@ export default function MediaDenseGrid({ type, limit = 24 }) {
         case 'series':
           query = supabase
             .from('movies')
-            .select('id,title,type,poster_url,release_year')
+            .select('id,title,type,poster_url,poster_path,release_year')
             .eq('type', 'series')
             .order('created_at', { ascending: false })
             .limit(limit)
@@ -195,11 +197,11 @@ export default function MediaDenseGrid({ type, limit = 24 }) {
           case 'series':
             return <MovieTile key={item.id} movie={item} />
           case 'posters':
-            return <PosterTile key={item.id} src={getMediaImageUrl('posters', item)} alt="Poster" />
+            return <PosterTile key={item.id} src={item.poster_url} alt="Poster" />
           case 'wallpapers':
-            return <LandscapeTile key={item.id} src={getMediaImageUrl('wallpapers', item)} alt="Wallpaper" />
+            return <LandscapeTile key={item.id} src={item.image_url} alt="Wallpaper" />
           case 'backdrops':
-            return <LandscapeTile key={item.id} src={getMediaImageUrl('backdrops', item)} alt="Backdrop" />
+            return <LandscapeTile key={item.id} src={item.backdrop_url} alt="Backdrop" />
           case 'logos':
             return <LogoTile key={item.id} item={item} />
           case 'persons':

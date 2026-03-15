@@ -1,11 +1,10 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
 import { motion } from 'framer-motion'
 import ProgressiveImage from '../ui/ProgressiveImage'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function PosterCard({ poster }) {
-  const src = getMediaImageUrl('posters', poster)
-  const url = getMediaDownloadUrl('posters', poster)
+  const src = poster.poster_url
+  const url = poster.download_url || poster.poster_url
   const filename = `poster-${poster.id}.jpg`
   
   return (

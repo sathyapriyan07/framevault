@@ -1,13 +1,16 @@
 import { Link } from 'react-router-dom'
 import { motion } from 'framer-motion'
 import ProgressiveImage from '../ui/ProgressiveImage'
+import { tmdbService } from '../../services/tmdbService'
 
 export default function MovieCard({ movie }) {
+  const posterSrc = movie.poster_url || tmdbService.getImageUrl(movie.poster_path, 'w342')
+
   return (
     <Link to={`/movie/${movie.id}`} className="block w-full">
       <div className="relative aspect-[2/3] rounded-xl overflow-hidden shadow-sm">
         <img 
-          src={movie.poster_url} 
+          src={posterSrc} 
           alt={movie.title}
           className="w-full h-full object-cover"
           loading="lazy"

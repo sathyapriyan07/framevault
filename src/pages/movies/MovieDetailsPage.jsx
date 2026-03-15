@@ -3,7 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { movieService } from '../../services/movieService'
 import { mediaService } from '../../services/mediaService'
 import { downloadFile } from '../../utils/downloadHelper'
-import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
+import { tmdbService } from '../../services/tmdbService'
 
 export default function MovieDetailsPage() {
   const { id } = useParams()
@@ -65,6 +65,11 @@ export default function MovieDetailsPage() {
   if (!movie) return <div className="text-center py-20">Loading...</div>
 
   const tabItems = ['Wallpapers', 'Posters', 'Logos', 'Backdrops']
+  const heroSrc =
+    movie.backdrop_url ||
+    tmdbService.getImageUrl(movie.backdrop_path) ||
+    movie.poster_url ||
+    tmdbService.getImageUrl(movie.poster_path)
 
   const renderMediaGrid = () => {
     switch (activeTab) {
@@ -72,8 +77,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {wallpapers.map((item) => {
-              const src = getMediaImageUrl('wallpapers', item)
-              const url = getMediaDownloadUrl('wallpapers', item)
+              const src = item.image_url
+              const url = item.download_url || item.image_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -98,8 +103,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {posters.map((item) => {
-              const src = getMediaImageUrl('posters', item)
-              const url = getMediaDownloadUrl('posters', item)
+              const src = item.poster_url
+              const url = item.download_url || item.poster_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -124,8 +129,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {logos.map((item) => {
-              const src = getMediaImageUrl('logos', item)
-              const pngUrl = getMediaDownloadUrl('logos', item)
+              const src = item.logo_url
+              const pngUrl = item.png_download || item.logo_url
               const svgUrl = item.svg_download
               return (
                 <div key={item.id}>
@@ -166,8 +171,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {backdrops.map((item) => {
-              const src = getMediaImageUrl('backdrops', item)
-              const url = getMediaDownloadUrl('backdrops', item)
+              const src = item.backdrop_url
+              const url = item.download_url || item.backdrop_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -197,7 +202,7 @@ export default function MovieDetailsPage() {
     <div className="min-h-screen bg-black text-white">
       <div className="relative h-[320px] overflow-hidden rounded-b-[40px]">
         <img
-          src={movie.backdrop_url || movie.poster_url}
+          src={heroSrc}
           alt={movie.title}
           className="absolute inset-0 w-full h-full object-cover"
           loading="lazy"
