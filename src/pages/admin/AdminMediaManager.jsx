@@ -13,6 +13,7 @@ import { personWallpaperService } from '../../services/personWallpaperService'
 import { adminMediaUploadService } from '../../services/adminMediaUploadService'
 import { mediaAssetsService } from '../../services/mediaAssetsService'
 import { getPublicUrl } from '../../utils/storageUrl'
+import { syncTmdbImages } from '../../utils/syncTmdbImages'
 
 export default function AdminMediaManager() {
   const [session, setSession] = useState(null)
@@ -280,44 +281,15 @@ export default function AdminMediaManager() {
 
   const syncMovieImages = async (movie) => {
     if (!movie?.tmdb_id) return
-
-    const apiKey = import.meta.env.VITE_TMDB_API_KEY
-    if (!apiKey) {
-      setMessageType('error')
-      setMessage('Missing VITE_TMDB_API_KEY. Add it to .env and restart the dev server.')
-      return
-    }
-
     try {
       setMessage('')
+      const result = await syncTmdbImages(movie.tmdb_id, movie.id, {
+        mediaType: movie.type === 'series' ? 'tv' : 'movie'
+      })
 
-      const base = movie.type === 'series' ? 'tv' : 'movie'
-      const url = `https://api.themoviedb.org/3/${base}/${movie.tmdb_id}/images?api_key=${apiKey}`
-      const res = await fetch(url)
-      if (!res.ok) throw new Error(`TMDB images request failed (${res.status})`)
-      const data = await res.json()
-
-      const toUrl = (path) => (path ? `https://image.tmdb.org/t/p/original${path}` : null)
-
-      const logosToInsert = (data?.logos || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
-      const postersToInsert = (data?.posters || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
-      const backdropsToInsert = (data?.backdrops || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
-      const wallpapersToInsert = backdropsToInsert.slice(0, 60)
-
-      const [logosRes, postersRes, backdropsRes, wallpapersRes] = await Promise.all([
-        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'logo', filePaths: logosToInsert }),
-        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'poster', filePaths: postersToInsert }),
-        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'backdrop', filePaths: backdropsToInsert }),
-        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'wallpaper', filePaths: wallpapersToInsert })
-      ])
-
-      const errors = [logosRes.error, postersRes.error, backdropsRes.error, wallpapersRes.error].filter(Boolean)
-      if (errors.length) throw errors[0]
-
+      if (!result.success) throw new Error(result.error || 'TMDB sync failed')
       setMessageType('success')
-      setMessage(
-        `Synced from TMDB. Added logos: ${logosRes.inserted}, posters: ${postersRes.inserted}, backdrops: ${backdropsRes.inserted}, wallpapers: ${wallpapersRes.inserted}.`
-      )
+      setMessage(`Synced from TMDB. Inserted: ${result.inserted}. Skipped duplicates: ${result.skipped}.`)
 
       await loadData()
       if (activeTab === 'uploads' && uploadMovieId === movie.id) {
@@ -468,7 +440,7 @@ export default function AdminMediaManager() {
                  ) : (
                    <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                      {uploadedAssets.map((asset) => {
-                       const src = getPublicUrl('media', asset.file_path)
+                       const src = getPublicUrl('media', asset.url || asset.file_path)
                        const isLogo = asset.type === 'logo'
                        const aspect =
                          asset.type === 'poster' ? 'aspect-[2/3]' : asset.type === 'logo' ? 'aspect-[4/3]' : 'aspect-[16/9]'

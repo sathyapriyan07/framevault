@@ -97,8 +97,9 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {wallpapers.map((item) => {
-              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.image_url
-              const url = item.file_path ? src : item.download_url || item.image_url
+              const storagePath = item.url || item.file_path
+              const src = storagePath ? getPublicUrl('media', storagePath) : item.image_url
+              const url = storagePath ? src : item.download_url || item.image_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -123,8 +124,9 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {posters.map((item) => {
-              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.poster_url
-              const url = item.file_path ? src : item.download_url || item.poster_url
+              const storagePath = item.url || item.file_path
+              const src = storagePath ? getPublicUrl('media', storagePath) : item.poster_url
+              const url = storagePath ? src : item.download_url || item.poster_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -149,9 +151,10 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {logos.map((item) => {
-              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.logo_url
-              const pngUrl = item.file_path ? src : item.png_download || item.logo_url
-              const svgUrl = item.file_path ? null : item.svg_download
+              const storagePath = item.url || item.file_path
+              const src = storagePath ? getPublicUrl('media', storagePath) : item.logo_url
+              const pngUrl = storagePath ? src : item.png_download || item.logo_url
+              const svgUrl = storagePath ? null : item.svg_download
               return (
                 <div key={item.id}>
                   <div className="bg-[#2a2a2a] rounded-xl aspect-[4/3] flex items-center justify-center">
@@ -191,8 +194,9 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {backdrops.map((item) => {
-              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.backdrop_url
-              const url = item.file_path ? src : item.download_url || item.backdrop_url
+              const storagePath = item.url || item.file_path
+              const src = storagePath ? getPublicUrl('media', storagePath) : item.backdrop_url
+              const url = storagePath ? src : item.download_url || item.backdrop_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">

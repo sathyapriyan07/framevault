@@ -73,7 +73,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
             normalized.push({
               key: `storage-${asset.id}`,
               movieId: asset.movie_id,
-              src: getPublicUrl('media', asset.file_path)
+              src: getPublicUrl('media', asset.url || asset.file_path)
             })
           }
         }

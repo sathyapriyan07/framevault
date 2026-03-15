@@ -17,7 +17,7 @@ export const useWallpapers = () => {
 
       const normalizedStorage = (storageItems || [])
         .map((asset) => {
-          const url = getPublicUrl('media', asset.file_path)
+          const url = getPublicUrl('media', asset.url || asset.file_path)
           if (!url) return null
           return {
             id: asset.id,

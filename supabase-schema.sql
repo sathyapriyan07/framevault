@@ -69,6 +69,9 @@ CREATE TABLE media_assets (
   movie_id UUID REFERENCES movies(id) ON DELETE CASCADE,
   type TEXT CHECK (type IN ('logo', 'poster', 'backdrop', 'wallpaper')) NOT NULL,
   file_path TEXT NOT NULL,
+  url TEXT,
+  width INTEGER,
+  height INTEGER,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
