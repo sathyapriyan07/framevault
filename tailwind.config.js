@@ -8,7 +8,7 @@ export default {
     extend: {
       fontFamily: {
         heading: ['Space Grotesk', 'sans-serif'],
-        body: ['Inter', 'sans-serif'],
+        body: ['Poppins', 'sans-serif'],
       },
       colors: {
         dark: {
