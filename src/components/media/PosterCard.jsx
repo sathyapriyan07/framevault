@@ -1,15 +1,17 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
 import { motion } from 'framer-motion'
 import ProgressiveImage from '../ui/ProgressiveImage'
+import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function PosterCard({ poster }) {
-  const url = poster.download_url || poster.poster_url
+  const src = getMediaImageUrl('posters', poster)
+  const url = getMediaDownloadUrl('posters', poster)
   const filename = `poster-${poster.id}.jpg`
   
   return (
     <div className="rounded-lg bg-[#111111] overflow-hidden shadow-sm w-[140px] md:w-[180px] lg:w-[220px] flex-shrink-0">
       <div className="aspect-[2/3] overflow-hidden">
-        <ProgressiveImage src={poster.poster_url} alt="Poster" className="h-full" imgClassName="w-full h-full object-cover" />
+        <ProgressiveImage src={src} alt="Poster" className="h-full" imgClassName="w-full h-full object-cover" />
       </div>
       <div className="p-2">
         <div className="flex gap-1.5">
@@ -20,7 +22,7 @@ export default function PosterCard({ poster }) {
             Download
           </button>
           <button 
-            onClick={() => openDownload(poster.poster_url)} 
+            onClick={() => openDownload(src)} 
             className="rounded-full bg-[#1a1a1a] hover:bg-[#262626] px-2 py-1 text-[10px] md:text-xs text-white"
           >
             Open

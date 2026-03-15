@@ -3,6 +3,7 @@ import { useParams, useSearchParams } from 'react-router-dom'
 import { movieService } from '../../services/movieService'
 import { mediaService } from '../../services/mediaService'
 import { downloadFile } from '../../utils/downloadHelper'
+import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function MovieDetailsPage() {
   const { id } = useParams()
@@ -71,12 +72,13 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {wallpapers.map((item) => {
-              const url = item.download_url || item.image_url
+              const src = getMediaImageUrl('wallpapers', item)
+              const url = getMediaDownloadUrl('wallpapers', item)
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
                     <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img src={item.image_url} alt="Wallpaper" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={src} alt="Wallpaper" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   </div>
                   {url && (
@@ -96,12 +98,13 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {posters.map((item) => {
-              const url = item.download_url || item.poster_url
+              const src = getMediaImageUrl('posters', item)
+              const url = getMediaDownloadUrl('posters', item)
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
                     <div className="aspect-[2/3] w-full overflow-hidden">
-                      <img src={item.poster_url} alt="Poster" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={src} alt="Poster" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   </div>
                   {url && (
@@ -121,13 +124,14 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {logos.map((item) => {
-              const pngUrl = item.png_download || item.logo_url
+              const src = getMediaImageUrl('logos', item)
+              const pngUrl = getMediaDownloadUrl('logos', item)
               const svgUrl = item.svg_download
               return (
                 <div key={item.id}>
                   <div className="bg-[#2a2a2a] rounded-xl aspect-[4/3] flex items-center justify-center">
                     <img
-                      src={item.logo_url}
+                      src={src}
                       alt="Logo"
                       className="max-w-[70%] max-h-[70%] object-contain"
                       loading="lazy"
@@ -162,12 +166,13 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {backdrops.map((item) => {
-              const url = item.download_url || item.backdrop_url
+              const src = getMediaImageUrl('backdrops', item)
+              const url = getMediaDownloadUrl('backdrops', item)
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
                     <div className="aspect-[16/9] w-full overflow-hidden">
-                      <img src={item.backdrop_url} alt="Backdrop" className="w-full h-full object-cover" loading="lazy" />
+                      <img src={src} alt="Backdrop" className="w-full h-full object-cover" loading="lazy" />
                     </div>
                   </div>
                   {url && (

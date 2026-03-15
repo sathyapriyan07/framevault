@@ -8,6 +8,8 @@ const CACHE_TTL_MS = 5 * 60 * 1000
 const buildImage = (item) => ({
   image_url: item.file_path ? `${IMAGE_BASE_URL}${item.file_path}` : null,
   resolution: item.width && item.height ? `${item.width}x${item.height}` : null,
+  width: item.width ?? null,
+  height: item.height ?? null,
   aspect_ratio: item.aspect_ratio ?? null,
   file_path: item.file_path
 })

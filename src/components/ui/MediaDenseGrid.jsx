@@ -2,29 +2,31 @@ import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
 import { downloadFile } from '../../utils/downloadHelper'
+import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 function LogoTile({ item }) {
-  const pngUrl = item.png_download || item.logo_url
-  const svgUrl = item.svg_download
+  const src = getMediaImageUrl('logos', item)
+  const downloadUrl = getMediaDownloadUrl('logos', item)
+  const svgUrl = item.svg_download || null
 
   return (
     <div className="w-full">
       <div className="aspect-square bg-[#111] rounded-lg flex items-center justify-center overflow-hidden">
-        {item.logo_url ? (
-          <img src={item.logo_url} alt="Logo" className="max-w-[70%] max-h-[70%] object-contain" loading="lazy" />
+        {src ? (
+          <img src={src} alt="Logo" className="max-w-[70%] max-h-[70%] object-contain" loading="lazy" />
         ) : (
           <div className="w-full h-full bg-black/30" />
         )}
       </div>
-      {(pngUrl || svgUrl) && (
+      {(downloadUrl || svgUrl) && (
         <div className="flex gap-2 mt-1">
-          {pngUrl && (
+          {downloadUrl && (
             <button
               type="button"
-              onClick={() => downloadFile(pngUrl, `logo-${item.id}.png`)}
+              onClick={() => downloadFile(downloadUrl, `logo-${item.id}.png`)}
               className="text-xs px-2 py-1 rounded-full bg-blue-600 text-white"
             >
-              PNG
+              Download
             </button>
           )}
           {svgUrl && (
@@ -125,28 +127,28 @@ export default function MediaDenseGrid({ type, limit = 24 }) {
         case 'wallpapers':
           query = supabase
             .from('wallpapers')
-            .select('id,image_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'logos':
           query = supabase
             .from('logos')
-            .select('id,logo_url,png_download,svg_download')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'posters':
           query = supabase
             .from('posters')
-            .select('id,poster_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'backdrops':
           query = supabase
             .from('backdrops')
-            .select('id,backdrop_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
@@ -193,11 +195,11 @@ export default function MediaDenseGrid({ type, limit = 24 }) {
           case 'series':
             return <MovieTile key={item.id} movie={item} />
           case 'posters':
-            return <PosterTile key={item.id} src={item.poster_url} alt="Poster" />
+            return <PosterTile key={item.id} src={getMediaImageUrl('posters', item)} alt="Poster" />
           case 'wallpapers':
-            return <LandscapeTile key={item.id} src={item.image_url} alt="Wallpaper" />
+            return <LandscapeTile key={item.id} src={getMediaImageUrl('wallpapers', item)} alt="Wallpaper" />
           case 'backdrops':
-            return <LandscapeTile key={item.id} src={item.backdrop_url} alt="Backdrop" />
+            return <LandscapeTile key={item.id} src={getMediaImageUrl('backdrops', item)} alt="Backdrop" />
           case 'logos':
             return <LogoTile key={item.id} item={item} />
           case 'persons':

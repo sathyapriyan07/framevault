@@ -1,7 +1,9 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
+import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function BackdropCard({ backdrop, variant = 'row' }) {
-  const url = backdrop.download_url || backdrop.backdrop_url
+  const src = getMediaImageUrl('backdrops', backdrop)
+  const url = getMediaDownloadUrl('backdrops', backdrop)
   const filename = `backdrop-${backdrop.id}.jpg`
   
   const isRow = variant === 'row'
@@ -12,7 +14,7 @@ export default function BackdropCard({ backdrop, variant = 'row' }) {
     }`}>
       <div className="aspect-[16/9] w-full overflow-hidden">
         <img
-          src={backdrop.backdrop_url}
+          src={src}
           alt="Backdrop"
           className="w-full h-full object-cover"
           loading="lazy"
@@ -26,7 +28,7 @@ export default function BackdropCard({ backdrop, variant = 'row' }) {
           Download
         </button>
         <button 
-          onClick={() => openDownload(backdrop.backdrop_url)} 
+          onClick={() => openDownload(src)} 
           className="px-3 py-1 text-xs rounded-full bg-[#1a1a1a] hover:bg-[#262626] text-white"
         >
           Open

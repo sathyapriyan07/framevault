@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
+import { getMediaImageUrl } from '../../utils/mediaStorage'
 
 const VIEW_ALL_ROUTE_BY_TYPE = {
   wallpapers: '/wallpapers',
@@ -59,28 +60,28 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
         case 'logos':
           query = supabase
             .from('logos')
-            .select('id,movie_id,logo_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'posters':
           query = supabase
             .from('posters')
-            .select('id,movie_id,poster_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'backdrops':
           query = supabase
             .from('backdrops')
-            .select('id,movie_id,backdrop_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
         case 'wallpapers':
           query = supabase
             .from('wallpapers')
-            .select('id,movie_id,image_url')
+            .select('*')
             .order('created_at', { ascending: false })
             .limit(limit)
           break
@@ -129,6 +130,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
         <div className="flex gap-3 overflow-x-auto pb-2 scroll-hidden">
           {items.map((item) => {
             if (type === 'logos') {
+              const src = getMediaImageUrl('logos', item)
               return (
                 <button
                   key={item.id}
@@ -136,12 +138,13 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
                   onClick={() => onCardClick(item.movie_id)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LogoCard src={item.logo_url} />
+                  <LogoCard src={src} />
                 </button>
               )
             }
 
             if (type === 'posters') {
+              const src = getMediaImageUrl('posters', item)
               return (
                 <button
                   key={item.id}
@@ -149,12 +152,13 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
                   onClick={() => onCardClick(item.movie_id)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <PosterCard src={item.poster_url} />
+                  <PosterCard src={src} />
                 </button>
               )
             }
 
             if (type === 'backdrops') {
+              const src = getMediaImageUrl('backdrops', item)
               return (
                 <button
                   key={item.id}
@@ -162,12 +166,13 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
                   onClick={() => onCardClick(item.movie_id)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LandscapeCard src={item.backdrop_url} alt="Backdrop" />
+                  <LandscapeCard src={src} alt="Backdrop" />
                 </button>
               )
             }
 
             if (type === 'wallpapers') {
+              const src = getMediaImageUrl('wallpapers', item)
               return (
                 <button
                   key={item.id}
@@ -175,7 +180,7 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
                   onClick={() => onCardClick(item.movie_id)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LandscapeCard src={item.image_url} alt="Wallpaper" />
+                  <LandscapeCard src={src} alt="Wallpaper" />
                 </button>
               )
             }

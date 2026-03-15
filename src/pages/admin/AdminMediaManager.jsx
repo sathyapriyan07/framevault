@@ -11,6 +11,7 @@ import { backdropService } from '../../services/backdropService'
 import { personService } from '../../services/personService'
 import { personWallpaperService } from '../../services/personWallpaperService'
 import { tmdbImageService } from '../../services/tmdbImageService'
+import { mediaStorageService } from '../../services/mediaStorageService'
 
 export default function AdminMediaManager() {
   const [session, setSession] = useState(null)
@@ -205,33 +206,37 @@ export default function AdminMediaManager() {
       const existingPosters = new Set((postersRes.data || []).map((item) => item.poster_url))
       const existingBackdrops = new Set((backdropsRes.data || []).map((item) => item.backdrop_url))
 
-      const logoInserts = (tmdbImages.logos || [])
-        .filter((item) => item.image_url && !existingLogos.has(item.image_url))
-        .map((item) => ({
-          movie_id: movie.id,
-          logo_url: item.image_url,
-          png_download: item.image_url
-        }))
+      const newLogos = (tmdbImages.logos || []).filter((item) => item.image_url && !existingLogos.has(item.image_url))
+      const newPosters = (tmdbImages.posters || []).filter((item) => item.image_url && !existingPosters.has(item.image_url))
+      const newBackdrops = (tmdbImages.backdrops || []).filter((item) => item.image_url && !existingBackdrops.has(item.image_url))
 
-      const posterInserts = (tmdbImages.posters || [])
-        .filter((item) => item.image_url && !existingPosters.has(item.image_url))
-        .map((item) => ({
-          movie_id: movie.id,
-          poster_url: item.image_url,
-          download_url: item.image_url
-        }))
-
-      const backdropInserts = (tmdbImages.backdrops || [])
-        .filter((item) => item.image_url && !existingBackdrops.has(item.image_url))
-        .map((item) => ({
-          movie_id: movie.id,
-          backdrop_url: item.image_url,
-          download_url: item.image_url
-        }))
-
-      if (logoInserts.length) await supabase.from('logos').insert(logoInserts)
-      if (posterInserts.length) await supabase.from('posters').insert(posterInserts)
-      if (backdropInserts.length) await supabase.from('backdrops').insert(backdropInserts)
+      for (const item of newLogos) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'logos',
+          movieId: movie.id,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
+      for (const item of newPosters) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'posters',
+          movieId: movie.id,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
+      for (const item of newBackdrops) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'backdrops',
+          movieId: movie.id,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
 
       setMessageType('success')
       setMessage('TMDB images synced.')

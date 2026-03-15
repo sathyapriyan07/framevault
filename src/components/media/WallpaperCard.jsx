@@ -1,15 +1,17 @@
 import { downloadFile, openDownload } from '../../utils/downloadHelper'
 import { motion } from 'framer-motion'
 import ProgressiveImage from '../ui/ProgressiveImage'
+import { getMediaDownloadUrl, getMediaImageUrl } from '../../utils/mediaStorage'
 
 export default function WallpaperCard({ wallpaper }) {
-  const url = wallpaper.download_url || wallpaper.image_url
+  const src = getMediaImageUrl('wallpapers', wallpaper)
+  const url = getMediaDownloadUrl('wallpapers', wallpaper)
   const filename = `wallpaper-${wallpaper.id}.jpg`
   
   return (
     <div className="rounded-lg bg-[#111111] overflow-hidden shadow-sm w-[220px] md:w-[240px] lg:w-[260px] flex-shrink-0">
       <div className="aspect-[16/9] w-full">
-        <ProgressiveImage src={wallpaper.image_url} alt="Wallpaper" className="h-full" imgClassName="w-full h-full object-cover" />
+        <ProgressiveImage src={src} alt="Wallpaper" className="h-full" imgClassName="w-full h-full object-cover" />
       </div>
       <div className="p-2">
         {wallpaper.resolution && (
@@ -23,7 +25,7 @@ export default function WallpaperCard({ wallpaper }) {
             Download
           </button>
           <button
-            onClick={() => openDownload(wallpaper.image_url)}
+            onClick={() => openDownload(src)}
             className="rounded-full bg-[#1a1a1a] hover:bg-[#262626] px-2 py-1 text-[10px] md:text-xs text-white"
           >
             Open

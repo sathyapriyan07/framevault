@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom'
 import { tmdbService } from '../../services/tmdbService'
 import { movieService } from '../../services/movieService'
 import { supabase } from '../../services/supabaseClient'
+import { mediaStorageService } from '../../services/mediaStorageService'
 
 export default function AdminAddMovie() {
   const [tmdbId, setTmdbId] = useState('')
@@ -125,30 +126,36 @@ export default function AdminAddMovie() {
   const saveImages = async (movieId) => {
     if (images.logos) {
       for (const logo of images.logos.slice(0, 5)) {
-        await supabase.from('logos').insert({
-          movie_id: movieId,
-          logo_url: tmdbService.getImageUrl(logo.file_path),
-          png_download: tmdbService.getImageUrl(logo.file_path)
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'logos',
+          movieId,
+          remoteUrl: tmdbService.getImageUrl(logo.file_path),
+          width: logo.width ?? null,
+          height: logo.height ?? null
         })
       }
     }
 
     if (images.posters) {
       for (const poster of images.posters.slice(0, 10)) {
-        await supabase.from('posters').insert({
-          movie_id: movieId,
-          poster_url: tmdbService.getImageUrl(poster.file_path),
-          download_url: tmdbService.getImageUrl(poster.file_path)
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'posters',
+          movieId,
+          remoteUrl: tmdbService.getImageUrl(poster.file_path),
+          width: poster.width ?? null,
+          height: poster.height ?? null
         })
       }
     }
 
     if (images.backdrops) {
       for (const backdrop of images.backdrops.slice(0, 10)) {
-        await supabase.from('backdrops').insert({
-          movie_id: movieId,
-          backdrop_url: tmdbService.getImageUrl(backdrop.file_path),
-          download_url: tmdbService.getImageUrl(backdrop.file_path)
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'backdrops',
+          movieId,
+          remoteUrl: tmdbService.getImageUrl(backdrop.file_path),
+          width: backdrop.width ?? null,
+          height: backdrop.height ?? null
         })
       }
     }

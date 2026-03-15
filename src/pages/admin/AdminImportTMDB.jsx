@@ -2,7 +2,7 @@ import { useState } from 'react'
 import { tmdbService } from '../../services/tmdbService'
 import { tmdbImageService } from '../../services/tmdbImageService'
 import { movieService } from '../../services/movieService'
-import { supabase } from '../../services/supabaseClient'
+import { mediaStorageService } from '../../services/mediaStorageService'
 
 export default function AdminImportTMDB() {
   const [tmdbId, setTmdbId] = useState('')
@@ -26,16 +26,22 @@ export default function AdminImportTMDB() {
     logos: (raw?.logos || []).map((item) => ({
       image_url: tmdbService.getImageUrl(item.file_path),
       resolution: item.width && item.height ? `${item.width}x${item.height}` : null,
+      width: item.width ?? null,
+      height: item.height ?? null,
       aspect_ratio: item.aspect_ratio ?? null
     })),
     posters: (raw?.posters || []).map((item) => ({
       image_url: tmdbService.getImageUrl(item.file_path),
       resolution: item.width && item.height ? `${item.width}x${item.height}` : null,
+      width: item.width ?? null,
+      height: item.height ?? null,
       aspect_ratio: item.aspect_ratio ?? null
     })),
     backdrops: (raw?.backdrops || []).map((item) => ({
       image_url: tmdbService.getImageUrl(item.file_path),
       resolution: item.width && item.height ? `${item.width}x${item.height}` : null,
+      width: item.width ?? null,
+      height: item.height ?? null,
       aspect_ratio: item.aspect_ratio ?? null
     }))
   })
@@ -94,6 +100,8 @@ export default function AdminImportTMDB() {
 
   const saveMovie = async () => {
     if (!movieData) return
+    setLoading(true)
+    setMessage('')
     const releaseDate = movieData.release_date || movieData.first_air_date
     const releaseYear = releaseDate ? new Date(releaseDate).getFullYear() : null
     const movie = {
@@ -111,42 +119,55 @@ export default function AdminImportTMDB() {
     if (error) {
       setMessageType('error')
       setMessage(`Error saving movie: ${error.message || error.details || 'Unknown error'}`)
+      setLoading(false)
       return
     }
     if (!savedMovie?.[0]?.id) return
     const movieId = savedMovie[0].id
 
-    const logoInserts = (images?.logos || [])
-      .filter((item) => selectedLogos.has(item.image_url))
-      .map((item) => ({
-        movie_id: movieId,
-        logo_url: item.image_url,
-        png_download: item.image_url
-      }))
-    const posterInserts = (images?.posters || [])
-      .filter((item) => selectedPosters.has(item.image_url))
-      .map((item) => ({
-        movie_id: movieId,
-        poster_url: item.image_url,
-        download_url: item.image_url
-      }))
-    const backdropInserts = (images?.backdrops || [])
-      .filter((item) => selectedBackdrops.has(item.image_url))
-      .map((item) => ({
-        movie_id: movieId,
-        backdrop_url: item.image_url,
-        download_url: item.image_url
-      }))
+    try {
+      const selectedLogoItems = (images?.logos || []).filter((item) => selectedLogos.has(item.image_url))
+      const selectedPosterItems = (images?.posters || []).filter((item) => selectedPosters.has(item.image_url))
+      const selectedBackdropItems = (images?.backdrops || []).filter((item) => selectedBackdrops.has(item.image_url))
 
-    if (logoInserts.length) await supabase.from('logos').insert(logoInserts)
-    if (posterInserts.length) await supabase.from('posters').insert(posterInserts)
-    if (backdropInserts.length) await supabase.from('backdrops').insert(backdropInserts)
+      for (const item of selectedLogoItems) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'logos',
+          movieId,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
+      for (const item of selectedPosterItems) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'posters',
+          movieId,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
+      for (const item of selectedBackdropItems) {
+        await mediaStorageService.uploadAndInsertMovieMedia({
+          type: 'backdrops',
+          movieId,
+          remoteUrl: item.image_url,
+          width: item.width,
+          height: item.height
+        })
+      }
 
-    setMessageType('success')
-    setMessage('Movie and selected assets imported.')
+      setMessageType('success')
+      setMessage('Movie and selected assets imported.')
+    } catch (e) {
+      setMessageType('error')
+      setMessage(`Import completed, but some uploads failed: ${e?.message || 'Unknown error'}`)
+    }
     setMovieData(null)
     setImages(null)
     setTmdbId('')
+    setLoading(false)
   }
 
   const toggleSelection = (setFn, imageUrl) => {
