@@ -1,36 +1,34 @@
-export const downloadFile = async (url, filename = 'media-file') => {
+export const downloadFile = (url, filename) => {
   if (!url) return
-  
+
+  const resolvedFilename =
+    filename ?? url?.split('/').pop()?.split('?')?.[0] ?? 'download'
+
   try {
-    const response = await fetch(url)
-    const blob = await response.blob()
-    const blobUrl = window.URL.createObjectURL(blob)
     const link = document.createElement('a')
-    link.href = blobUrl
-    link.download = filename
-    document.body.appendChild(link)
-    link.click()
-    link.remove()
-    window.URL.revokeObjectURL(blobUrl)
-  } catch (error) {
-    // Fallback for CORS issues
-    const link = document.createElement('a')
+
     link.href = url
-    link.download = filename
-    link.target = '_blank'
+    link.setAttribute('download', resolvedFilename || 'download')
+    link.setAttribute('target', '_self')
+    link.setAttribute('rel', 'noopener')
+
     document.body.appendChild(link)
     link.click()
     link.remove()
+  } catch (error) {
+    console.error('Download failed:', error)
   }
 }
 
 export const openDownload = (url) => {
   if (!url) return
+
   window.open(url, '_blank', 'noopener,noreferrer')
 }
 
 export const copyDownloadLink = async (url) => {
   if (!url) return false
+
   try {
     await navigator.clipboard.writeText(url)
     return true
