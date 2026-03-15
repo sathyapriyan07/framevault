@@ -192,7 +192,7 @@ export default function AdminMediaManager() {
     if (!asset?.id) return
     setMessage('')
     try {
-      if (asset.file_path) {
+      if (asset.file_path && !/^https?:\/\//i.test(asset.file_path)) {
         const { error: storageError } = await supabase.storage.from('media').remove([asset.file_path])
         if (storageError) throw storageError
       }
@@ -279,10 +279,54 @@ export default function AdminMediaManager() {
   }
 
   const syncMovieImages = async (movie) => {
-    // Intentionally disabled: assets are curated and added manually.
     if (!movie?.tmdb_id) return
-    setMessageType('success')
-    setMessage('TMDB image sync is disabled. Add logos/posters/backdrops/wallpapers manually.')
+
+    const apiKey = import.meta.env.VITE_TMDB_API_KEY
+    if (!apiKey) {
+      setMessageType('error')
+      setMessage('Missing VITE_TMDB_API_KEY. Add it to .env and restart the dev server.')
+      return
+    }
+
+    try {
+      setMessage('')
+
+      const base = movie.type === 'series' ? 'tv' : 'movie'
+      const url = `https://api.themoviedb.org/3/${base}/${movie.tmdb_id}/images?api_key=${apiKey}`
+      const res = await fetch(url)
+      if (!res.ok) throw new Error(`TMDB images request failed (${res.status})`)
+      const data = await res.json()
+
+      const toUrl = (path) => (path ? `https://image.tmdb.org/t/p/original${path}` : null)
+
+      const logosToInsert = (data?.logos || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
+      const postersToInsert = (data?.posters || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
+      const backdropsToInsert = (data?.backdrops || []).map((i) => toUrl(i.file_path)).filter(Boolean).slice(0, 60)
+      const wallpapersToInsert = backdropsToInsert.slice(0, 60)
+
+      const [logosRes, postersRes, backdropsRes, wallpapersRes] = await Promise.all([
+        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'logo', filePaths: logosToInsert }),
+        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'poster', filePaths: postersToInsert }),
+        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'backdrop', filePaths: backdropsToInsert }),
+        mediaAssetsService.insertManyUnique({ movieId: movie.id, type: 'wallpaper', filePaths: wallpapersToInsert })
+      ])
+
+      const errors = [logosRes.error, postersRes.error, backdropsRes.error, wallpapersRes.error].filter(Boolean)
+      if (errors.length) throw errors[0]
+
+      setMessageType('success')
+      setMessage(
+        `Synced from TMDB. Added logos: ${logosRes.inserted}, posters: ${postersRes.inserted}, backdrops: ${backdropsRes.inserted}, wallpapers: ${wallpapersRes.inserted}.`
+      )
+
+      await loadData()
+      if (activeTab === 'uploads' && uploadMovieId === movie.id) {
+        await loadUploadedAssets(uploadMovieId)
+      }
+    } catch (error) {
+      setMessageType('error')
+      setMessage(error?.message || 'TMDB sync failed')
+    }
   }
 
   return (
