@@ -18,6 +18,9 @@ export default function AdminImportTMDB() {
   const [searchQuery, setSearchQuery] = useState('')
   const [searchResults, setSearchResults] = useState([])
   const [searching, setSearching] = useState(false)
+  const [searchRan, setSearchRan] = useState(false)
+  const [searchCount, setSearchCount] = useState(0)
+  const [searchError, setSearchError] = useState('')
 
   const normalizeImages = (raw) => ({
     logos: (raw?.logos || []).map((item) => ({
@@ -40,16 +43,17 @@ export default function AdminImportTMDB() {
   const searchTMDB = async () => {
     if (!searchQuery.trim()) return
     setSearching(true)
-    setMessage('')
+    setSearchRan(true)
+    setSearchError('')
     try {
       const results = await tmdbService.searchMulti(searchQuery)
       const filtered = (results.results || []).filter((item) => item.media_type === 'movie' || item.media_type === 'tv')
       setSearchResults(filtered)
-      setMessageType('success')
-      setMessage(`Found ${filtered.length} results`)
+      setSearchCount(filtered.length)
     } catch (error) {
-      setMessageType('error')
-      setMessage(`Error searching TMDB: ${error?.message || 'Unknown error'}`)
+      setSearchResults([])
+      setSearchCount(0)
+      setSearchError(`Error searching TMDB: ${error?.message || 'Unknown error'}`)
     }
     setSearching(false)
   }
@@ -59,6 +63,9 @@ export default function AdminImportTMDB() {
     setType(item.media_type === 'movie' ? 'movie' : 'series')
     setSearchResults([])
     setSearchQuery('')
+    setSearchRan(false)
+    setSearchCount(0)
+    setSearchError('')
   }
 
   const fetchFromTMDB = async () => {
@@ -161,160 +168,199 @@ export default function AdminImportTMDB() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
-      <h1 className="text-4xl font-heading font-bold mb-6">TMDB Import</h1>
-      <div className="bg-dark-card p-8 rounded-lg mb-8">
-        <div className="mb-6">
-          <label className="block mb-2">Search TMDB</label>
+    <div className="max-w-md mx-auto px-4 py-6">
+      <h1 className="text-xl font-semibold mb-4 font-heading">TMDB Import</h1>
+
+      <div className="bg-[#111] rounded-xl p-4 space-y-4">
+        <div className="space-y-3">
+          <label className="block text-sm text-neutral-300 font-heading">Search TMDB</label>
           <div className="flex gap-2">
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => e.key === 'Enter' && searchTMDB()}
-              className="flex-1 px-4 py-2 bg-black/40 rounded-xl border border-white/10 focus:outline-none focus:ring-2 focus:ring-[#ff375f]/60"
-              placeholder="Search for movies or series..."
+              className="flex-1 px-3 py-2 text-sm rounded-lg bg-black border border-[#222] focus:outline-none focus:ring-2 focus:ring-pink-600/40"
+              placeholder="Search movie"
             />
             <button
               onClick={searchTMDB}
               disabled={searching}
-              className="rounded-full bg-[#ff375f] px-5 py-2 text-sm text-white disabled:opacity-50"
+              className="px-4 py-2 text-sm rounded-lg bg-pink-600 text-white disabled:opacity-50"
             >
-              {searching ? 'Searching...' : 'Search'}
+              {searching ? '...' : 'Search'}
             </button>
           </div>
+
+          {searchResults.length > 0 && (
+            <div className="max-h-52 overflow-y-auto space-y-2">
+              {searchResults.map((item) => {
+                const date = item.release_date || item.first_air_date
+                const year = date ? String(date).slice(0, 4) : '-'
+                const mediaType = item.media_type === 'tv' ? 'series' : item.media_type
+                return (
+                  <button
+                    key={item.id}
+                    type="button"
+                    onClick={() => selectFromSearch(item)}
+                    className="w-full text-left flex items-center gap-3 bg-[#161616] rounded-lg p-2 hover:bg-[#1c1c1c] transition"
+                  >
+                    {item.poster_path ? (
+                      <img
+                        src={tmdbService.getImageUrl(item.poster_path, 'w92')}
+                        alt={item.title || item.name}
+                        className="w-10 h-14 rounded object-cover flex-shrink-0"
+                        loading="lazy"
+                      />
+                    ) : (
+                      <div className="w-10 h-14 rounded bg-black/40 border border-[#222] flex-shrink-0" />
+                    )}
+                    <div className="min-w-0">
+                      <p className="text-sm font-medium font-heading truncate">{item.title || item.name}</p>
+                      <p className="text-xs text-neutral-400 font-body">
+                        {year} • {mediaType}
+                      </p>
+                    </div>
+                  </button>
+                )
+              })}
+            </div>
+          )}
+
+          {searchError && <p className="text-xs text-red-400 font-body">{searchError}</p>}
+          {!searchError && searchRan && (
+            <p className="text-xs text-green-400 font-body">Found {searchCount} results</p>
+          )}
         </div>
 
-        {searchResults.length > 0 && (
-          <div className="mb-6 max-h-80 overflow-y-auto">
-            <h3 className="font-semibold mb-3">Search Results:</h3>
-            <div className="space-y-2">
-              {searchResults.map((item) => (
-                <div
-                  key={item.id}
-                  onClick={() => selectFromSearch(item)}
-                  className="flex gap-4 p-3 bg-black/40 rounded-xl hover:bg-black/60 cursor-pointer transition"
-                >
-                  {item.poster_path && (
-                    <img
-                      src={tmdbService.getImageUrl(item.poster_path, 'w92')}
-                      alt={item.title || item.name}
-                      className="w-10 h-14 object-cover rounded"
-                    />
-                  )}
-                  <div className="flex-1">
-                    <h4 className="font-semibold">{item.title || item.name}</h4>
-                    <p className="text-sm text-gray-400">
-                      {item.release_date || item.first_air_date} - {item.media_type}
-                    </p>
-                  </div>
-                </div>
-              ))}
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-3">
+            <div className="space-y-1.5">
+              <label className="block text-xs text-neutral-400 font-body">Type</label>
+              <select
+                value={type}
+                onChange={(e) => setType(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+              >
+                <option value="movie">Movie</option>
+                <option value="series">Series</option>
+              </select>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs text-neutral-400 font-body">TMDB ID</label>
+              <input
+                type="text"
+                value={tmdbId}
+                onChange={(e) => setTmdbId(e.target.value)}
+                className="w-full px-3 py-2 text-sm bg-[#1a1a1a] rounded-lg border border-[#222]"
+                placeholder="e.g. 603"
+              />
             </div>
           </div>
-        )}
 
-        <div className="grid gap-4 md:grid-cols-2">
-          <div>
-            <label className="block mb-2">Type</label>
-            <select value={type} onChange={(e) => setType(e.target.value)} className="w-full px-4 py-2 bg-gray-800 rounded">
-              <option value="movie">Movie</option>
-              <option value="series">Series</option>
-            </select>
-          </div>
-          <div>
-            <label className="block mb-2">TMDB ID</label>
-            <input
-              type="text"
-              value={tmdbId}
-              onChange={(e) => setTmdbId(e.target.value)}
-              className="w-full px-4 py-2 bg-gray-800 rounded"
-            />
-          </div>
-        </div>
-        <div className="mt-4 flex gap-3">
-          <button onClick={fetchFromTMDB} className="bg-blue-600 hover:bg-blue-700 px-6 py-2 rounded">
-            {loading ? 'Loading...' : 'Fetch Preview'}
-          </button>
-          {movieData && (
-            <button onClick={saveMovie} className="bg-green-600 hover:bg-green-700 px-6 py-2 rounded">
-              Save Selected Assets
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={fetchFromTMDB}
+              className="px-4 py-2 text-sm rounded-lg bg-blue-600 text-white disabled:opacity-60"
+              disabled={loading || !tmdbId}
+            >
+              {loading ? 'Loading...' : 'Fetch Preview'}
             </button>
-          )}
-          {movieData && (
-            <button onClick={importAllImages} className="bg-white/10 hover:bg-white/20 px-6 py-2 rounded">
-              Import All Images
-            </button>
+            {movieData && (
+              <button onClick={saveMovie} className="px-4 py-2 text-sm rounded-lg bg-green-600 text-white">
+                Save Selected
+              </button>
+            )}
+            {movieData && (
+              <button onClick={importAllImages} className="px-4 py-2 text-sm rounded-lg bg-white/10 text-white hover:bg-white/15">
+                Select All
+              </button>
+            )}
+          </div>
+
+          {message && (
+            <p className={`text-xs ${messageType === 'error' ? 'text-red-400' : 'text-green-400'} font-body`}>
+              {message}
+            </p>
           )}
         </div>
-        {message && (
-          <p className={`mt-4 ${messageType === 'error' ? 'text-red-400' : 'text-green-400'}`}>{message}</p>
-        )}
       </div>
 
       {movieData && (
-        <div className="space-y-8">
-          <div className="bg-dark-card p-6 rounded-lg">
-            <h2 className="text-2xl font-heading font-semibold mb-2">Movie Information</h2>
-            <p className="text-xl text-white">{movieData.title || movieData.name}</p>
-            <p className="text-gray-400 mt-2">{movieData.overview}</p>
+        <div className="space-y-4 mt-4">
+          <div className="bg-[#111] rounded-xl p-4">
+            <h2 className="text-sm font-medium font-heading text-neutral-200">Movie Information</h2>
+            <p className="text-sm text-white font-heading mt-2">{movieData.title || movieData.name}</p>
+            {movieData.overview && <p className="text-xs text-neutral-400 font-body mt-2">{movieData.overview}</p>}
           </div>
 
           <div>
-            <h3 className="text-xl font-heading font-semibold mb-4">Logos</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <h3 className="text-sm font-medium font-heading mb-2">Logos</h3>
+            <div className="grid grid-cols-2 gap-3">
               {(images?.logos || []).map((logo) => (
                 <label key={logo.image_url} className="cursor-pointer">
-                  <div className={`rounded-lg p-2 border ${selectedLogos.has(logo.image_url) ? 'border-blue-500' : 'border-white/10'}`}>
-                    <img src={logo.image_url} alt="Logo" className="h-20 w-full object-contain" />
-                    {logo.resolution && <p className="mt-2 text-xs text-gray-400">{logo.resolution}</p>}
-                  </div>
                   <input
                     type="checkbox"
                     checked={selectedLogos.has(logo.image_url)}
                     onChange={() => toggleSelection(setSelectedLogos, logo.image_url)}
-                    className="mt-2"
+                    className="sr-only"
                   />
+                  <div
+                    className={`rounded-lg p-2 bg-[#161616] border ${
+                      selectedLogos.has(logo.image_url) ? 'border-blue-500' : 'border-white/10'
+                    }`}
+                  >
+                    <img src={logo.image_url} alt="Logo" className="h-16 w-full object-contain" loading="lazy" />
+                    {logo.resolution && <p className="mt-2 text-[10px] text-neutral-400 font-body">{logo.resolution}</p>}
+                  </div>
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="text-xl font-heading font-semibold mb-4">Posters</h3>
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+            <h3 className="text-sm font-medium font-heading mb-2">Posters</h3>
+            <div className="grid grid-cols-2 gap-3">
               {(images?.posters || []).map((poster) => (
                 <label key={poster.image_url} className="cursor-pointer">
-                  <div className={`rounded-lg overflow-hidden border ${selectedPosters.has(poster.image_url) ? 'border-blue-500' : 'border-white/10'}`}>
-                    <img src={poster.image_url} alt="Poster" className="h-48 w-full object-cover" />
-                    {poster.resolution && <p className="p-2 text-xs text-gray-400">{poster.resolution}</p>}
-                  </div>
                   <input
                     type="checkbox"
                     checked={selectedPosters.has(poster.image_url)}
                     onChange={() => toggleSelection(setSelectedPosters, poster.image_url)}
-                    className="mt-2"
+                    className="sr-only"
                   />
+                  <div
+                    className={`rounded-lg overflow-hidden bg-[#161616] border ${
+                      selectedPosters.has(poster.image_url) ? 'border-blue-500' : 'border-white/10'
+                    }`}
+                  >
+                    <img src={poster.image_url} alt="Poster" className="h-40 w-full object-cover" loading="lazy" />
+                    {poster.resolution && <p className="p-2 text-[10px] text-neutral-400 font-body">{poster.resolution}</p>}
+                  </div>
                 </label>
               ))}
             </div>
           </div>
 
           <div>
-            <h3 className="text-xl font-heading font-semibold mb-4">Backdrops</h3>
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <h3 className="text-sm font-medium font-heading mb-2">Backdrops</h3>
+            <div className="grid grid-cols-2 gap-3">
               {(images?.backdrops || []).map((backdrop) => (
                 <label key={backdrop.image_url} className="cursor-pointer">
-                  <div className={`rounded-lg overflow-hidden border ${selectedBackdrops.has(backdrop.image_url) ? 'border-blue-500' : 'border-white/10'}`}>
-                    <img src={backdrop.image_url} alt="Backdrop" className="h-32 w-full object-cover" />
-                    {backdrop.resolution && <p className="p-2 text-xs text-gray-400">{backdrop.resolution}</p>}
-                  </div>
                   <input
                     type="checkbox"
                     checked={selectedBackdrops.has(backdrop.image_url)}
                     onChange={() => toggleSelection(setSelectedBackdrops, backdrop.image_url)}
-                    className="mt-2"
+                    className="sr-only"
                   />
+                  <div
+                    className={`rounded-lg overflow-hidden bg-[#161616] border ${
+                      selectedBackdrops.has(backdrop.image_url) ? 'border-blue-500' : 'border-white/10'
+                    }`}
+                  >
+                    <img src={backdrop.image_url} alt="Backdrop" className="h-24 w-full object-cover" loading="lazy" />
+                    {backdrop.resolution && <p className="p-2 text-[10px] text-neutral-400 font-body">{backdrop.resolution}</p>}
+                  </div>
                 </label>
               ))}
             </div>
