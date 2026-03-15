@@ -61,13 +61,27 @@ export const storageUploadService = {
       return { path: data.path, via: 'client' }
     } catch (clientError) {
       // Fallback: Edge Function fetches the TMDB URL server-side and uploads to Storage.
-      const { data, error } = await supabase.functions.invoke('tmdb-upload', {
-        body: {
-          bucket,
-          objectPath,
-          remoteUrl
-        }
-      })
+      let invokeResult
+      try {
+        invokeResult = await supabase.functions.invoke('tmdb-upload', {
+          body: {
+            bucket,
+            objectPath,
+            remoteUrl
+          }
+        })
+      } catch (invokeError) {
+        const fnUrl = `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/tmdb-upload`
+        const hint =
+          `Failed to send a request to the Edge Function. ` +
+          `Verify the function is deployed as "tmdb-upload" and reachable at ${fnUrl}. ` +
+          `Also verify VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are correct in Vercel.`
+        const err = new Error(`${hint} Original error: ${invokeError?.message || invokeError}`)
+        err.cause = invokeError
+        throw err
+      }
+
+      const { data, error } = invokeResult
 
       if (error) {
         const err = new Error(

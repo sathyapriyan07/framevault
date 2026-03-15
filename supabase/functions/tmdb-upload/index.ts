@@ -28,15 +28,30 @@ Deno.serve(async (req) => {
     }
 
     const supabaseUrl = Deno.env.get('SUPABASE_URL')
-    const serviceRoleKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
-    if (!supabaseUrl || !serviceRoleKey) {
-      return new Response(JSON.stringify({ error: 'Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY' }), {
+    const anonKey = Deno.env.get('SUPABASE_ANON_KEY')
+    if (!supabaseUrl || !anonKey) {
+      return new Response(JSON.stringify({ error: 'Missing SUPABASE_URL or SUPABASE_ANON_KEY' }), {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' }
       })
     }
 
-    const admin = createClient(supabaseUrl, serviceRoleKey)
+    const authHeader = req.headers.get('Authorization') || ''
+    if (!authHeader) {
+      return new Response(JSON.stringify({ error: 'Missing Authorization header' }), {
+        status: 401,
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      })
+    }
+
+    // Use the caller's JWT so Storage policies (admin-only write) apply normally.
+    const client = createClient(supabaseUrl, anonKey, {
+      global: {
+        headers: {
+          Authorization: authHeader
+        }
+      }
+    })
 
     const upstream = await fetch(remoteUrl)
     if (!upstream.ok) {
@@ -49,7 +64,7 @@ Deno.serve(async (req) => {
     const contentType = upstream.headers.get('content-type') || undefined
     const bytes = new Uint8Array(await upstream.arrayBuffer())
 
-    const { data, error } = await admin.storage.from(bucket).upload(objectPath, bytes, {
+    const { data, error } = await client.storage.from(bucket).upload(objectPath, bytes, {
       contentType,
       upsert: false
     })
@@ -72,4 +87,3 @@ Deno.serve(async (req) => {
     })
   }
 })
-
