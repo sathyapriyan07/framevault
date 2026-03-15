@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../../services/supabaseClient'
+import { mediaAssetsService } from '../../services/mediaAssetsService'
+import { getPublicUrl } from '../../utils/storageUrl'
 
 const VIEW_ALL_ROUTE_BY_TYPE = {
   wallpapers: '/wallpapers',
@@ -14,6 +16,13 @@ const TAB_QUERY_BY_TYPE = {
   posters: 'posters',
   logos: 'logos',
   backdrops: 'backdrops'
+}
+
+const STORAGE_ASSET_TYPE_BY_SECTION_TYPE = {
+  wallpapers: 'wallpaper',
+  posters: 'poster',
+  logos: 'logo',
+  backdrops: 'backdrop'
 }
 
 function LogoCard({ src }) {
@@ -54,47 +63,65 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
     const load = async () => {
       setLoading(true)
 
-      let query
-      switch (type) {
-        case 'logos':
-          query = supabase
-            .from('logos')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit)
-          break
-        case 'posters':
-          query = supabase
-            .from('posters')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit)
-          break
-        case 'backdrops':
-          query = supabase
-            .from('backdrops')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit)
-          break
-        case 'wallpapers':
-          query = supabase
-            .from('wallpapers')
-            .select('*')
-            .order('created_at', { ascending: false })
-            .limit(limit)
-          break
-        default:
-          if (isMounted) {
-            setItems([])
-            setLoading(false)
+      const normalized = []
+      const storageType = STORAGE_ASSET_TYPE_BY_SECTION_TYPE[type]
+
+      if (storageType) {
+        const { data: storageData, error: storageError } = await mediaAssetsService.getLatestByType(storageType, limit)
+        if (!storageError) {
+          for (const asset of storageData || []) {
+            normalized.push({
+              key: `storage-${asset.id}`,
+              movieId: asset.movie_id,
+              src: getPublicUrl('media', asset.file_path)
+            })
           }
-          return
+        }
       }
 
-      const { data } = await query
+      const remaining = Math.max(0, limit - normalized.length)
+      if (remaining > 0) {
+        let query
+        switch (type) {
+          case 'logos':
+            query = supabase.from('logos').select('*').order('created_at', { ascending: false }).limit(remaining)
+            break
+          case 'posters':
+            query = supabase.from('posters').select('*').order('created_at', { ascending: false }).limit(remaining)
+            break
+          case 'backdrops':
+            query = supabase.from('backdrops').select('*').order('created_at', { ascending: false }).limit(remaining)
+            break
+          case 'wallpapers':
+            query = supabase.from('wallpapers').select('*').order('created_at', { ascending: false }).limit(remaining)
+            break
+          default:
+            break
+        }
+
+        if (query) {
+          const { data } = await query
+          for (const item of data || []) {
+            const legacySrc =
+              type === 'logos'
+                ? item.logo_url
+                : type === 'posters'
+                  ? item.poster_url
+                  : type === 'backdrops'
+                    ? item.backdrop_url
+                    : item.image_url
+
+            normalized.push({
+              key: `legacy-${item.id}`,
+              movieId: item.movie_id,
+              src: legacySrc
+            })
+          }
+        }
+      }
+
       if (!isMounted) return
-      setItems(data || [])
+      setItems(normalized)
       setLoading(false)
     }
 
@@ -129,57 +156,53 @@ export default function MediaBrowseRow({ title, type, limit = 24 }) {
         <div className="flex gap-3 overflow-x-auto pb-2 scroll-hidden">
           {items.map((item) => {
             if (type === 'logos') {
-              const src = item.logo_url
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
-                  onClick={() => onCardClick(item.movie_id)}
+                  onClick={() => onCardClick(item.movieId)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LogoCard src={src} />
+                  <LogoCard src={item.src} />
                 </button>
               )
             }
 
             if (type === 'posters') {
-              const src = item.poster_url
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
-                  onClick={() => onCardClick(item.movie_id)}
+                  onClick={() => onCardClick(item.movieId)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <PosterCard src={src} />
+                  <PosterCard src={item.src} />
                 </button>
               )
             }
 
             if (type === 'backdrops') {
-              const src = item.backdrop_url
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
-                  onClick={() => onCardClick(item.movie_id)}
+                  onClick={() => onCardClick(item.movieId)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LandscapeCard src={src} alt="Backdrop" />
+                  <LandscapeCard src={item.src} alt="Backdrop" />
                 </button>
               )
             }
 
             if (type === 'wallpapers') {
-              const src = item.image_url
               return (
                 <button
-                  key={item.id}
+                  key={item.key}
                   type="button"
-                  onClick={() => onCardClick(item.movie_id)}
+                  onClick={() => onCardClick(item.movieId)}
                   className="text-left p-0 bg-transparent border-0 focus:outline-none focus:ring-2 focus:ring-white/10 rounded-lg"
                 >
-                  <LandscapeCard src={src} alt="Wallpaper" />
+                  <LandscapeCard src={item.src} alt="Wallpaper" />
                 </button>
               )
             }
