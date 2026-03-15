@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { homepageSectionService } from '../../services/homepageSectionService'
-import MediaRow from '../../components/ui/MediaRow'
+import MediaDenseGrid from '../../components/ui/MediaDenseGrid'
 import { motion } from 'framer-motion'
 
 export default function HomePage() {
@@ -19,40 +19,39 @@ export default function HomePage() {
 
   return (
     <div className="min-h-screen bg-black overflow-x-hidden">
-      <section className="relative h-[320px] md:h-[420px] lg:h-[520px] overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/60 to-transparent"></div>
-        <div className="relative max-w-7xl mx-auto px-4 h-full flex flex-col justify-end pb-6 md:pb-12">
+      <div className="max-w-7xl mx-auto px-4 py-4 space-y-6">
+        <section>
           <motion.h1
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6 }}
-            className="text-2xl md:text-4xl lg:text-6xl font-heading font-bold mb-2"
+            transition={{ duration: 0.4 }}
+            className="text-2xl font-semibold font-heading"
           >
             Media Archive
           </motion.h1>
           <motion.p
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.6, delay: 0.05 }}
-            className="text-sm md:text-base text-neutral-400 max-w-2xl"
+            transition={{ duration: 0.4, delay: 0.05 }}
+            className="text-sm text-neutral-400 mt-2 max-w-md font-body"
           >
-            A premium archive for wallpapers, title logos, posters, and cinematic backdrops.
+            Browse wallpapers, title logos, posters, and cinematic backdrops.
           </motion.p>
-        </div>
-      </section>
+        </section>
 
-      <section className="max-w-7xl mx-auto px-4 pt-4 md:py-12 space-y-6 md:space-y-12 overflow-x-hidden">
-        {loading ? (
-          <div className="text-center text-gray-400">Loading...</div>
-        ) : (
-          sections.map((section) => (
-            <div key={section.id} className="mt-6 md:mt-8">
-              <h2 className="text-lg md:text-2xl lg:text-3xl font-heading font-semibold mb-3 md:mb-5">{section.title}</h2>
-              <MediaRow type={section.type} limit={section.limit_count} />
-            </div>
-          ))
-        )}
-      </section>
+        <section className="space-y-6 overflow-x-hidden">
+          {loading ? (
+            <div className="text-sm text-neutral-400 font-body">Loading...</div>
+          ) : (
+            sections.map((section) => (
+              <div key={section.id}>
+                <h2 className="text-lg font-semibold mb-3 font-heading">{section.title}</h2>
+                <MediaDenseGrid type={section.type} limit={section.limit_count} />
+              </div>
+            ))
+          )}
+        </section>
+      </div>
     </div>
   )
 }
