@@ -63,6 +63,15 @@ CREATE TABLE backdrops (
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
+-- Media Assets (Storage-backed uploads)
+CREATE TABLE media_assets (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  movie_id UUID REFERENCES movies(id) ON DELETE CASCADE,
+  type TEXT CHECK (type IN ('logo', 'poster', 'backdrop', 'wallpaper')) NOT NULL,
+  file_path TEXT NOT NULL,
+  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+);
+
 -- Users table (extends Supabase auth.users)
 CREATE TABLE users (
   id UUID PRIMARY KEY REFERENCES auth.users(id) ON DELETE CASCADE,
@@ -102,6 +111,8 @@ CREATE INDEX idx_wallpapers_movie_id ON wallpapers(movie_id);
 CREATE INDEX idx_logos_movie_id ON logos(movie_id);
 CREATE INDEX idx_posters_movie_id ON posters(movie_id);
 CREATE INDEX idx_backdrops_movie_id ON backdrops(movie_id);
+CREATE INDEX idx_media_assets_movie_id ON media_assets(movie_id);
+CREATE INDEX idx_media_assets_type ON media_assets(type);
 CREATE INDEX idx_persons_tmdb_id ON persons(tmdb_id);
 CREATE INDEX idx_person_wallpapers_person_id ON person_wallpapers(person_id);
 
@@ -111,6 +122,7 @@ ALTER TABLE wallpapers ENABLE ROW LEVEL SECURITY;
 ALTER TABLE logos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE posters ENABLE ROW LEVEL SECURITY;
 ALTER TABLE backdrops ENABLE ROW LEVEL SECURITY;
+ALTER TABLE media_assets ENABLE ROW LEVEL SECURITY;
 ALTER TABLE users ENABLE ROW LEVEL SECURITY;
 ALTER TABLE persons ENABLE ROW LEVEL SECURITY;
 ALTER TABLE person_wallpapers ENABLE ROW LEVEL SECURITY;
@@ -121,6 +133,7 @@ CREATE POLICY "Public read access" ON wallpapers FOR SELECT USING (true);
 CREATE POLICY "Public read access" ON logos FOR SELECT USING (true);
 CREATE POLICY "Public read access" ON posters FOR SELECT USING (true);
 CREATE POLICY "Public read access" ON backdrops FOR SELECT USING (true);
+CREATE POLICY "Public read access" ON media_assets FOR SELECT USING (true);
 CREATE POLICY "Public read access" ON persons FOR SELECT USING (true);
 CREATE POLICY "Public read access" ON person_wallpapers FOR SELECT USING (true);
 
@@ -162,6 +175,12 @@ CREATE POLICY "Admin write access" ON posters FOR ALL USING (
 );
 
 CREATE POLICY "Admin write access" ON backdrops FOR ALL USING (
+  EXISTS (
+    SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin'
+  )
+);
+
+CREATE POLICY "Admin write access" ON media_assets FOR ALL USING (
   EXISTS (
     SELECT 1 FROM users WHERE users.id = auth.uid() AND users.role = 'admin'
   )

@@ -10,6 +10,9 @@ import { posterService } from '../../services/posterService'
 import { backdropService } from '../../services/backdropService'
 import { personService } from '../../services/personService'
 import { personWallpaperService } from '../../services/personWallpaperService'
+import { adminMediaUploadService } from '../../services/adminMediaUploadService'
+import { mediaAssetsService } from '../../services/mediaAssetsService'
+import { getPublicUrl } from '../../utils/storageUrl'
 
 export default function AdminMediaManager() {
   const [session, setSession] = useState(null)
@@ -26,6 +29,13 @@ export default function AdminMediaManager() {
   const [backdrops, setBackdrops] = useState([])
   const [persons, setPersons] = useState([])
   const [personWallpapers, setPersonWallpapers] = useState([])
+
+  const [uploadMovieId, setUploadMovieId] = useState('')
+  const [uploadType, setUploadType] = useState('logo')
+  const [uploadFiles, setUploadFiles] = useState([])
+  const [uploading, setUploading] = useState(false)
+  const [uploadedAssets, setUploadedAssets] = useState([])
+  const [uploadInputKey, setUploadInputKey] = useState(0)
   const [newPerson, setNewPerson] = useState({
     name: '',
     profile_url: '',
@@ -78,6 +88,7 @@ export default function AdminMediaManager() {
   const tabs = useMemo(
     () => [
       { id: 'movies', label: 'Movies' },
+      { id: 'uploads', label: 'Uploads' },
       { id: 'wallpapers', label: 'Wallpapers' },
       { id: 'logos', label: 'Logos' },
       { id: 'posters', label: 'Posters' },
@@ -116,6 +127,85 @@ export default function AdminMediaManager() {
       loadData()
     }
   }, [canManage])
+
+  const loadUploadedAssets = async (movieId) => {
+    if (!movieId) {
+      setUploadedAssets([])
+      return
+    }
+    const { data, error } = await mediaAssetsService.getByMovieId(movieId)
+    if (error) {
+      setMessageType('error')
+      setMessage(error.message || 'Failed to load uploaded assets')
+      return
+    }
+    setUploadedAssets(data || [])
+  }
+
+  useEffect(() => {
+    if (activeTab !== 'uploads') return
+    if (uploadMovieId) return
+    if (movies.length === 0) return
+    setUploadMovieId(movies[0].id)
+  }, [activeTab, movies, uploadMovieId])
+
+  useEffect(() => {
+    if (activeTab !== 'uploads') return
+    loadUploadedAssets(uploadMovieId)
+  }, [activeTab, uploadMovieId])
+
+  const handleUploadSubmit = async () => {
+    setMessage('')
+    if (!uploadMovieId) {
+      setMessageType('error')
+      setMessage('Select a movie before uploading.')
+      return
+    }
+    if (!uploadType) {
+      setMessageType('error')
+      setMessage('Select an asset type before uploading.')
+      return
+    }
+    if (!uploadFiles.length) {
+      setMessageType('error')
+      setMessage('Choose one or more image files to upload.')
+      return
+    }
+
+    setUploading(true)
+    try {
+      await adminMediaUploadService.uploadFiles({ movieId: uploadMovieId, type: uploadType, files: uploadFiles })
+      setMessageType('success')
+      setMessage('Upload complete.')
+      setUploadFiles([])
+      setUploadInputKey(Date.now())
+      await loadUploadedAssets(uploadMovieId)
+    } catch (error) {
+      setMessageType('error')
+      setMessage(error?.message || 'Upload failed')
+    } finally {
+      setUploading(false)
+    }
+  }
+
+  const handleDeleteUploaded = async (asset) => {
+    if (!asset?.id) return
+    setMessage('')
+    try {
+      if (asset.file_path) {
+        const { error: storageError } = await supabase.storage.from('media').remove([asset.file_path])
+        if (storageError) throw storageError
+      }
+      const { error } = await mediaAssetsService.delete(asset.id)
+      if (error) throw error
+      setMessageType('success')
+      setMessage('Deleted successfully.')
+      await loadUploadedAssets(uploadMovieId)
+    } catch (error) {
+      setMessageType('error')
+      setMessage(error?.message || 'Delete failed')
+    }
+  }
 
   const handleSave = async (type, id, updates) => {
     setMessage('')
@@ -259,17 +349,127 @@ export default function AdminMediaManager() {
             ))}
           </div>
 
-          {message && (
-            <p className={`mb-4 text-sm ${messageType === 'error' ? 'text-red-400' : 'text-green-400'}`}>
-              {message}
-            </p>
-          )}
+           {message && (
+             <p className={`mb-4 text-sm ${messageType === 'error' ? 'text-red-400' : 'text-green-400'}`}>
+               {message}
+             </p>
+           )}
 
-          {activeTab === 'movies' && (
-            <div className="space-y-4">
-              {movies.map((movie) => (
-                <div key={movie.id} className="rounded-lg border border-gray-800 p-4 bg-gray-900/30">
-                  <div className="grid gap-3 md:grid-cols-2">
+           {activeTab === 'uploads' && (
+             <div className="space-y-6">
+               <div className="rounded-lg border border-gray-800 p-4 bg-gray-900/30 space-y-3">
+                 <div className="grid gap-3 md:grid-cols-2">
+                   <select
+                     className="w-full px-3 py-2 bg-gray-800 rounded"
+                     value={uploadMovieId}
+                     onChange={(e) => setUploadMovieId(e.target.value)}
+                   >
+                     <option value="">Select movie</option>
+                     {movies.map((movie) => (
+                       <option key={movie.id} value={movie.id}>
+                         {movie.title}
+                       </option>
+                     ))}
+                   </select>
+
+                   <select
+                     className="w-full px-3 py-2 bg-gray-800 rounded"
+                     value={uploadType}
+                     onChange={(e) => setUploadType(e.target.value)}
+                   >
+                     <option value="logo">Logo</option>
+                     <option value="poster">Poster</option>
+                     <option value="backdrop">Backdrop</option>
+                     <option value="wallpaper">Wallpaper</option>
+                   </select>
+
+                   <input
+                     key={uploadInputKey}
+                     type="file"
+                     multiple
+                     accept="image/*,image/svg+xml"
+                     className="w-full px-3 py-2 bg-gray-800 rounded"
+                     onChange={(e) => setUploadFiles(Array.from(e.target.files || []))}
+                   />
+
+                   <button
+                     onClick={handleUploadSubmit}
+                     disabled={uploading}
+                     className="px-4 py-2 rounded bg-blue-600 hover:bg-blue-700 disabled:opacity-60"
+                   >
+                     {uploading ? 'Uploading...' : `Upload${uploadFiles.length ? ` (${uploadFiles.length})` : ''}`}
+                   </button>
+                 </div>
+
+                 <p className="text-xs text-gray-400">
+                   Uploads go to bucket <span className="text-gray-200">media</span> and are stored in{' '}
+                   <span className="text-gray-200">media_assets</span>.
+                 </p>
+               </div>
+
+               <div className="space-y-3">
+                 <div className="flex items-center justify-between gap-3">
+                   <h3 className="text-sm font-heading font-semibold">Uploaded Assets</h3>
+                   <button
+                     onClick={() => loadUploadedAssets(uploadMovieId)}
+                     className="px-3 py-1.5 text-xs rounded bg-gray-800 hover:bg-gray-700"
+                     disabled={!uploadMovieId}
+                   >
+                     Refresh
+                   </button>
+                 </div>
+
+                 {uploadedAssets.length === 0 ? (
+                   <p className="text-sm text-gray-400">No uploaded assets for this movie yet.</p>
+                 ) : (
+                   <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                     {uploadedAssets.map((asset) => {
+                       const src = getPublicUrl('media', asset.file_path)
+                       const isLogo = asset.type === 'logo'
+                       const aspect =
+                         asset.type === 'poster' ? 'aspect-[2/3]' : asset.type === 'logo' ? 'aspect-[4/3]' : 'aspect-[16/9]'
+                       return (
+                         <div key={asset.id} className="rounded-lg border border-gray-800 bg-gray-900/30 p-3 space-y-2">
+                           <div
+                             className={`w-full ${aspect} rounded-lg overflow-hidden ${
+                               isLogo ? 'bg-[#2a2a2a] flex items-center justify-center' : 'bg-[#111111]'
+                             }`}
+                           >
+                             {src ? (
+                               <img
+                                 src={src}
+                                 alt={asset.type}
+                                 className={isLogo ? 'max-w-[70%] max-h-[70%] object-contain' : 'w-full h-full object-cover'}
+                                 loading="lazy"
+                               />
+                             ) : (
+                               <div className="w-full h-full flex items-center justify-center text-xs text-gray-400">No preview</div>
+                             )}
+                           </div>
+
+                           <div className="flex items-center justify-between gap-2">
+                             <p className="text-xs text-gray-400">{asset.type}</p>
+                             <button
+                               onClick={() => handleDeleteUploaded(asset)}
+                               className="px-2 py-1 text-xs rounded bg-red-600 hover:bg-red-700"
+                             >
+                               Delete
+                             </button>
+                           </div>
+                         </div>
+                       )
+                     })}
+                   </div>
+                 )}
+               </div>
+             </div>
+           )}
+
+           {activeTab === 'movies' && (
+             <div className="space-y-4">
+               {movies.map((movie) => (
+                 <div key={movie.id} className="rounded-lg border border-gray-800 p-4 bg-gray-900/30">
+                   <div className="grid gap-3 md:grid-cols-2">
                     <input
                       className="w-full px-3 py-2 bg-gray-800 rounded"
                       value={movie.title || ''}

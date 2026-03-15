@@ -2,8 +2,10 @@ import { useEffect, useState } from 'react'
 import { useParams, useSearchParams } from 'react-router-dom'
 import { movieService } from '../../services/movieService'
 import { mediaService } from '../../services/mediaService'
+import { mediaAssetsService } from '../../services/mediaAssetsService'
 import { downloadFile } from '../../utils/downloadHelper'
 import { tmdbService } from '../../services/tmdbService'
+import { getPublicUrl } from '../../utils/storageUrl'
 
 export default function MovieDetailsPage() {
   const { id } = useParams()
@@ -52,14 +54,32 @@ export default function MovieDetailsPage() {
   }
 
   const loadAssets = async () => {
-    const { data: wp } = await mediaService.getByMovieId('wallpapers', id)
-    const { data: lg } = await mediaService.getByMovieId('logos', id)
-    const { data: ps } = await mediaService.getByMovieId('posters', id)
-    const { data: bd } = await mediaService.getByMovieId('backdrops', id)
-    setWallpapers(wp || [])
-    setLogos(lg || [])
-    setPosters(ps || [])
-    setBackdrops(bd || [])
+    const [
+      { data: assets },
+      { data: wp },
+      { data: lg },
+      { data: ps },
+      { data: bd }
+    ] = await Promise.all([
+      mediaAssetsService.getByMovieId(id),
+      mediaService.getByMovieId('wallpapers', id),
+      mediaService.getByMovieId('logos', id),
+      mediaService.getByMovieId('posters', id),
+      mediaService.getByMovieId('backdrops', id)
+    ])
+
+    const byType = (assets || []).reduce((acc, asset) => {
+      const key = asset.type
+      if (!key) return acc
+      acc[key] = acc[key] || []
+      acc[key].push(asset)
+      return acc
+    }, {})
+
+    setWallpapers([...(byType.wallpaper || []), ...(wp || [])])
+    setLogos([...(byType.logo || []), ...(lg || [])])
+    setPosters([...(byType.poster || []), ...(ps || [])])
+    setBackdrops([...(byType.backdrop || []), ...(bd || [])])
   }
 
   if (!movie) return <div className="text-center py-20">Loading...</div>
@@ -77,8 +97,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {wallpapers.map((item) => {
-              const src = item.image_url
-              const url = item.download_url || item.image_url
+              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.image_url
+              const url = item.file_path ? src : item.download_url || item.image_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -103,8 +123,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {posters.map((item) => {
-              const src = item.poster_url
-              const url = item.download_url || item.poster_url
+              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.poster_url
+              const url = item.file_path ? src : item.download_url || item.poster_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
@@ -129,9 +149,9 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {logos.map((item) => {
-              const src = item.logo_url
-              const pngUrl = item.png_download || item.logo_url
-              const svgUrl = item.svg_download
+              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.logo_url
+              const pngUrl = item.file_path ? src : item.png_download || item.logo_url
+              const svgUrl = item.file_path ? null : item.svg_download
               return (
                 <div key={item.id}>
                   <div className="bg-[#2a2a2a] rounded-xl aspect-[4/3] flex items-center justify-center">
@@ -171,8 +191,8 @@ export default function MovieDetailsPage() {
         return (
           <div className="grid grid-cols-2 gap-4 px-4 mt-6">
             {backdrops.map((item) => {
-              const src = item.backdrop_url
-              const url = item.download_url || item.backdrop_url
+              const src = item.file_path ? getPublicUrl('media', item.file_path) : item.backdrop_url
+              const url = item.file_path ? src : item.download_url || item.backdrop_url
               return (
                 <div key={item.id}>
                   <div className="bg-[#111111] rounded-xl overflow-hidden">
