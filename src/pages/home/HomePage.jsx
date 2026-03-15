@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { homepageSectionService } from '../../services/homepageSectionService'
 import MediaDenseGrid from '../../components/ui/MediaDenseGrid'
+import MediaBrowseRow from '../../components/ui/MediaBrowseRow'
 import { motion } from 'framer-motion'
 
 export default function HomePage() {
@@ -45,8 +46,14 @@ export default function HomePage() {
           ) : (
             sections.map((section) => (
               <div key={section.id}>
-                <h2 className="text-lg font-semibold mb-3 font-heading">{section.title}</h2>
-                <MediaDenseGrid type={section.type} limit={section.limit_count} />
+                {['wallpapers', 'logos', 'posters', 'backdrops'].includes(section.type) ? (
+                  <MediaBrowseRow title={section.title} type={section.type} limit={section.limit_count} />
+                ) : (
+                  <>
+                    <h2 className="text-lg font-semibold mb-3 font-heading">{section.title}</h2>
+                    <MediaDenseGrid type={section.type} limit={section.limit_count} />
+                  </>
+                )}
               </div>
             ))
           )}

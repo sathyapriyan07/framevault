@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react'
-import { useParams } from 'react-router-dom'
+import { useParams, useSearchParams } from 'react-router-dom'
 import { movieService } from '../../services/movieService'
 import { mediaService } from '../../services/mediaService'
 import { downloadFile } from '../../utils/downloadHelper'
 
 export default function MovieDetailsPage() {
   const { id } = useParams()
+  const [searchParams] = useSearchParams()
   const [movie, setMovie] = useState(null)
   const [activeTab, setActiveTab] = useState('Wallpapers')
   const [wallpapers, setWallpapers] = useState([])
@@ -17,6 +18,18 @@ export default function MovieDetailsPage() {
     loadMovie()
     loadAssets()
   }, [id])
+
+  useEffect(() => {
+    const tabParam = (searchParams.get('tab') || '').toLowerCase()
+    const tabMap = {
+      wallpapers: 'Wallpapers',
+      posters: 'Posters',
+      logos: 'Logos',
+      backdrops: 'Backdrops'
+    }
+    const nextTab = tabMap[tabParam]
+    if (nextTab) setActiveTab(nextTab)
+  }, [id, searchParams])
 
   useEffect(() => {
     if (!movie) return
