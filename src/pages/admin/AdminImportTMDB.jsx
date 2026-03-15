@@ -136,7 +136,9 @@ export default function AdminImportTMDB() {
           movieId,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
       for (const item of selectedPosterItems) {
@@ -145,7 +147,9 @@ export default function AdminImportTMDB() {
           movieId,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
       for (const item of selectedBackdropItems) {
@@ -154,7 +158,9 @@ export default function AdminImportTMDB() {
           movieId,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
 

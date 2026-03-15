@@ -18,6 +18,11 @@ on conflict (id) do update set public = excluded.public;
 -- Postgres does not support CREATE POLICY IF NOT EXISTS, so these are wrapped.
 do $$
 begin
+  -- Note: `storage.objects` is owned by Supabase system roles.
+  -- On most projects RLS is already enabled for `storage.objects`.
+  -- If you see "must be owner of table objects", you cannot run ALTER TABLE here.
+  -- You can safely omit enabling RLS and just create the policies below.
+
   begin
     create policy "Public read logos" on storage.objects
       for select using (bucket_id = 'logos');
@@ -84,4 +89,3 @@ alter table public.wallpapers alter column image_url drop not null;
 
 -- Optional: once everything is migrated and you no longer need remote URLs,
 -- you can drop the old URL columns in a later migration.
-

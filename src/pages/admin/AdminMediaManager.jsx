@@ -216,7 +216,9 @@ export default function AdminMediaManager() {
           movieId: movie.id,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
       for (const item of newPosters) {
@@ -225,7 +227,9 @@ export default function AdminMediaManager() {
           movieId: movie.id,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
       for (const item of newBackdrops) {
@@ -234,7 +238,9 @@ export default function AdminMediaManager() {
           movieId: movie.id,
           remoteUrl: item.image_url,
           width: item.width,
-          height: item.height
+          height: item.height,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
 

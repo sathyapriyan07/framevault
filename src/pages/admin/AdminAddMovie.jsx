@@ -131,7 +131,9 @@ export default function AdminAddMovie() {
           movieId,
           remoteUrl: tmdbService.getImageUrl(logo.file_path),
           width: logo.width ?? null,
-          height: logo.height ?? null
+          height: logo.height ?? null,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
     }
@@ -143,7 +145,9 @@ export default function AdminAddMovie() {
           movieId,
           remoteUrl: tmdbService.getImageUrl(poster.file_path),
           width: poster.width ?? null,
-          height: poster.height ?? null
+          height: poster.height ?? null,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
     }
@@ -155,7 +159,9 @@ export default function AdminAddMovie() {
           movieId,
           remoteUrl: tmdbService.getImageUrl(backdrop.file_path),
           width: backdrop.width ?? null,
-          height: backdrop.height ?? null
+          height: backdrop.height ?? null,
+          requireStorage: true,
+          allowLegacyFallback: false
         })
       }
     }

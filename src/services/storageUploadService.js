@@ -35,30 +35,53 @@ export const storageUploadService = {
     if (!bucket) throw new Error('bucket is required')
     if (!remoteUrl) throw new Error('remoteUrl is required')
 
-    const response = await fetch(remoteUrl)
-    if (!response.ok) {
-      throw new Error(`Failed to download remote image (${response.status})`)
-    }
-
-    const blob = await response.blob()
-    const inferredContentType = contentType || blob.type || response.headers.get('content-type') || undefined
-
-    const ext =
-      fileExt ||
-      extFromContentType(inferredContentType) ||
-      guessExtFromUrl(remoteUrl) ||
-      'jpg'
+    const inferredFromUrlExt = fileExt || guessExtFromUrl(remoteUrl) || undefined
 
     const safePrefix = pathPrefix ? pathPrefix.replace(/\/+$/, '') : ''
-    const objectPath = `${safePrefix ? `${safePrefix}/` : ''}${Date.now()}-${randomId()}.${ext}`
+    const objectPath = `${safePrefix ? `${safePrefix}/` : ''}${Date.now()}-${randomId()}.${inferredFromUrlExt || 'jpg'}`
 
-    const { data, error } = await supabase.storage.from(bucket).upload(objectPath, blob, {
-      contentType: inferredContentType,
-      upsert: false
-    })
+    // Try client-side download -> upload (fast path). This may fail in browsers due to CORS.
+    try {
+      const response = await fetch(remoteUrl)
+      if (!response.ok) {
+        throw new Error(`Failed to download remote image (${response.status})`)
+      }
 
-    if (error) throw error
-    return { path: data.path }
+      const blob = await response.blob()
+      const inferredContentType = contentType || blob.type || response.headers.get('content-type') || undefined
+      const ext = fileExt || extFromContentType(inferredContentType) || inferredFromUrlExt || 'jpg'
+      const normalizedObjectPath = objectPath.replace(/\.[^.]+$/, `.${ext}`)
+
+      const { data, error } = await supabase.storage.from(bucket).upload(normalizedObjectPath, blob, {
+        contentType: inferredContentType,
+        upsert: false
+      })
+
+      if (error) throw error
+      return { path: data.path, via: 'client' }
+    } catch (clientError) {
+      // Fallback: Edge Function fetches the TMDB URL server-side and uploads to Storage.
+      const { data, error } = await supabase.functions.invoke('tmdb-upload', {
+        body: {
+          bucket,
+          objectPath,
+          remoteUrl
+        }
+      })
+
+      if (error) {
+        const err = new Error(
+          `Storage upload failed (client+function). Client error: ${clientError?.message || clientError}. Function error: ${error.message || error}`
+        )
+        err.cause = clientError
+        throw err
+      }
+
+      if (!data?.path) {
+        throw new Error('tmdb-upload function did not return a path')
+      }
+
+      return { path: data.path, via: 'function' }
+    }
   }
 }
-
